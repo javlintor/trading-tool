@@ -16,6 +16,13 @@ If you name your environment something different from `my_env`, do not forget to
 Then install dependencies with pip:
 > `$ pip install -r requirements.txt`
 
+## Create a configuration file
+You need to provide a configuration file with actual and test API tokens for Binance and Kucoin. Create a `secret.cfg` and **do not publish or share it**
+```
+[BINANCE]
+ACTUAL_API_KEY = <your-actual-api-key>
+ACTUAL_SECRET_KEY = <your-actual-secret-key>
+```
 
 ## Run the app in your browser
 and finally run it
