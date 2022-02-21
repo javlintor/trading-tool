@@ -1,2 +1,6 @@
 my_env/
 *.cfg
+*.csv
+docs/
+.ipynb_checkpoints/
+__pycache__/
