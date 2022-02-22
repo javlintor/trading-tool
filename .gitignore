@@ -5,3 +5,5 @@ docs/
 .ipynb_checkpoints/
 __pycache__/
 *.db
+.DS_Store
+.env 
