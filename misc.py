@@ -9,6 +9,23 @@ import configparser
 from binance import ThreadedWebsocketManager
 import time
 
+SYMBOLS = [
+    "BTC", 
+    "ETH", 
+    "BNB", 
+    "XRP", 
+    "ADA", 
+    "SOL", 
+    "LUNA", 
+    "AVAX", 
+    "DOGE",
+    "DOT", 
+    "SHIB", 
+    "MATIC", 
+    "WBTC", 
+    "LTC"
+]
+
 def streaming_data_process(msg):
     """
     Function to process the received messages and add latest token pair price
