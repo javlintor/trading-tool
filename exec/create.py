@@ -1,31 +1,6 @@
-import sqlite3
-from sqlite3 import Error
-
-
-def create_connection(db_file):
-    """ create a database connection to a SQLite database """
-    conn = None
-    try:
-        conn = sqlite3.connect(db_file)
-        return conn
-    except Error as e:
-        print(e)
-    
-    return conn
-
-
-
-def create_table(conn, create_table_sql):
-    """ create a table from the create_table_sql statement
-    :param conn: Connection object
-    :param create_table_sql: a CREATE TABLE statement
-    :return:
-    """
-    try:
-        c = conn.cursor()
-        c.execute(create_table_sql)
-    except Error as e:
-        print(e)
+import sys
+sys.path.append(".")
+from trading_tool.db import create_connection, create_table
 
 def main():
 
@@ -40,20 +15,26 @@ def main():
 
     # create series.klines_1d table
     create_klines_1d_query = f"""
-    CREATE TABLE IF NOT EXISTS klines (
+    CREATE TABLE IF NOT EXISTS klines_1d (
         id integer PRIMARY KEY AUTOINCREMENT, 
         id_symbol integer NOT NULL, 
-        timestamp integer NOT NULL, 
+        dateTime integer NOT NULL, 
         open real NOT NULL, 
         high real NOT NULL, 
         low real NOT NULL, 
-        clse real NOT NULL, 
+        close real NOT NULL, 
+        volume real NOT NULL,
+        closeTime integer NOT NULL,
+        quoteAssetVolume real NOT NULL,
+        numberOfTrades real NOT NULL,
+        takerBuyBaseVol real NOT NULL,
+        takerBuyQuoteVol real NOT NULL, 
         FOREIGN KEY (id_symbol) REFERENCES symbols (id)
     )
     """
 
     # create a database connection
-    conn = create_connection("pythonsqlite.db")
+    conn = create_connection("trading_tool.db")
 
     # # create tables
     if conn is not None:
@@ -64,6 +45,8 @@ def main():
         create_table(conn, create_klines_1d_query)
     else:
         print("Error! cannot create the database connection.")
+
+    print("Tables created.")
 
 if __name__ == '__main__':
     main()

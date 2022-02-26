@@ -3,18 +3,30 @@ This repo contains a [Dash app](https://plotly.com/dash/) for traiding using Bin
 
 ## Create a virtual environment
 To run the app, first create a virtual environment using python module `virtualenv`:
-> `$ python -m virtualenv <env name>`
+```shell 
+python -m virtualenv <env name>
+```
 
 and activate it
-- Mac/Linux: `$ source <env name>/bin/activate`
-- Windows: `$ source <env name>/Scripts/activate`
+- Mac/Linux: 
+```shell 
+source <env name>/bin/activate
+```
+- Windows: 
+```shell 
+source <env name>/Scripts/activate
+```
 
 If you name your environment something different from `my_env`, do not forget to add it to the `.gitignore` file. When finished, remember to deactivate virtual environment
-> `$ deactivate`
+```shell 
+deactivate
+```
 
 ## Install dependencies
 Then install dependencies with pip:
-> `$ pip install -r requirements.txt`
+```shell
+pip install -r requirements.txt
+```
 
 ## Create a configuration file
 You need to provide a configuration file with actual and test API tokens for Binance and Kucoin. Create a `secret.cfg` and **do not publish or share it**
@@ -26,6 +38,7 @@ ACTUAL_SECRET_KEY = <your-actual-secret-key>
 
 ## Run the app in your browser
 and finally run it
-> `$ python app.py`
-
+```shell
+python app.py
+```
 
