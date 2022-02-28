@@ -1,0 +1,118 @@
+*{
+    box-sizing: border-box;
+    margin: 0;
+    font-size: var(--global-font-size);
+    word-spacing: 3px;
+}
+
+.body {
+    background-color: var(--colors-background);
+    color: var(--colors-text);
+    height: 200vh;
+    padding: 10px 50px;
+    font-family: var(--font-text);
+}
+
+.header {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 50px 0;
+}
+
+.title {
+    font-size: 3rem;
+    color: var(--light-yellow);
+    padding: 10px 20px 0 0 ;
+}
+
+.description {
+    font-size: 1.3rem;
+    color: var(--dark-yellow);
+}
+
+.main-container {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    grid-template-rows: 300px 300px;
+    grid-template-areas: 
+        "figure options1"
+        "figure options2";
+    gap: 50px;
+    justify-content: flex-start;
+    background-color: var(--gray5);
+    border-radius: 20px;
+    padding: 50px;
+    margin-top: 70px;
+}
+
+.main-container-2 {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 600px;
+    grid-template-areas: 
+        "figure";
+    gap: 50px;
+    justify-content: flex-start;
+    background-color: var(--gray5);
+    border-radius: 20px;
+    padding: 50px;
+    margin-top: 70px;
+}
+
+.candle_1m-container {
+    grid-area: figure;
+    padding: 4px;
+    border-radius: 20px;
+    background-color: var(--colors-background);
+}
+
+.candle_plot-container {
+    grid-area: figure;
+    padding: 4px;
+    border-radius: 20px;
+    background-color: var(--colors-background);
+}
+
+.candle_1m {
+    height: 100%;
+}
+
+.candle_plot {
+    height: 100%;
+}
+
+
+.options1-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    padding-left: 30px;
+    grid-area: options1;
+    background-color: var(--colors-background);
+    border-radius: 20px;
+    gap: 20px;
+}
+
+
+.options2-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: 30px;
+    grid-area: options2;
+    background-color: var(--colors-background);
+    border-radius: 20px;
+    gap: 20px;
+}
+
+#symbols {
+    width: 200px;
+    color: black;
+}
+
+.date_range-container {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}

@@ -3,13 +3,19 @@ import pandas as pd
 
 from sqlite3 import Error
 
-
+SAMPLE_SYMBOLS = [
+    "BTCUSDT", 
+    "ETHUSDT",
+    "LUNAUSDT", 
+    "GALAUSDT", 
+    "FTMUSDT"
+]
 
 def create_connection(db_file):
     """ create a database connection to a SQLite database """
     conn = None
     try:
-        conn = sqlite3.connect(db_file)
+        conn = sqlite3.connect(db_file, check_same_thread=False)
         return conn
     except Error as e:
         print(e)
@@ -47,6 +53,8 @@ def insert_symbol(conn, symbol):
 
     return cur.lastrowid
 
+
+# DEPRECATED: instead use pd.read_sql
 def select_query(conn, query=None, table_name=None, where=None):
     """
     Insert symbol to database
@@ -59,8 +67,9 @@ def select_query(conn, query=None, table_name=None, where=None):
     
     if query:
 
-        if not (table_name or where):
-            raise "If query is specified, other fileds must be left default"
+        if  table_name or where:
+            print("If query is specified, other fileds must be left default")
+            return None
 
         cur.execute(query)
         rows = cur.fetchall()
@@ -80,3 +89,34 @@ def select_query(conn, query=None, table_name=None, where=None):
     df = pd.DataFrame(rows)
 
     return df
+
+def get_symbols(conn):
+
+    query = """
+    SELECT DISTINCT symbol FROM symbols
+    INNER JOIN klines_1d 
+        ON symbols.id = klines_1d.id_symbol
+    """
+
+    return pd.read_sql(query, conn)["symbol"].tolist()
+
+def get_klines_1d(conn, symbol=None, start_date='2022-01-01', end_date='2022-03-01'):
+
+    query = f"""
+    SELECT
+    dateTime, 
+    open, 
+    high, 
+    low, 
+    close
+    FROM symbols
+    INNER JOIN klines_1d 
+        ON symbols.id = klines_1d.id_symbol
+    WHERE symbol = '{symbol}' AND 
+        dateTime BETWEEN '{start_date}' AND '{end_date}'
+    """
+
+    df = pd.read_sql(query, conn)
+
+    return df
+

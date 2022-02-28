@@ -1,4 +1,5 @@
 import pandas as pd
+from datetime import datetime
 
 def get_symbols(client, limit=None):
     """
@@ -16,19 +17,28 @@ def get_symbols(client, limit=None):
     return symbols
 
 
-def get_kline(client, start_datetime, symbol):
+def get_kline(
+    client, 
+    start_datetime=datetime(2022, 1, 1), 
+    end_datetime=datetime(2022, 1, 1),
+    symbol="BTCUSDT",
+    interval="1d"
+):
     """
     Get klines from Binance API
     :param client
     :param start_datetime
     :param symbol
+    :param interval
     """
 
     start_str = start_datetime.strftime("%c")
+    end_str = end_datetime.strftime("%c")
     kline = client.get_historical_klines(
-        symbol="ETHBTC",
-        interval="1d", 
+        symbol=symbol,
+        interval=interval, 
         start_str=start_str, 
+        end_str=end_str, 
         limit=1000
     )
     # warning: we are assuming col order by Binance API documentation

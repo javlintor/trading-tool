@@ -1,0 +1,36 @@
+:root {
+    --gray0: #f8f8f8;
+    --gray1: #dbe1e8;
+    --gray2: #b2becd;
+    --gray3: #6c7983;
+    --gray4: #454e56;
+    --gray5: #2a2e35;
+    --gray6: #12181b;
+    --gray7: #050708;
+    --dark-yellow: #f5bb29; 
+    --dark-red: #d06c14;
+    --light-yellow: #dadada;
+    --green-a: #95ff00;
+    --green-a-hover: #44d600;
+    --react-color: #61DBFC;
+    --django-dark-color: #002f1f;
+    --django-light-color: #44B78B;
+    --twitter-color: #169DF0;
+    --github-color: #9B41A8;
+    --linkedin-color: #0073B3;
+    --vl-color: white;
+    --yellow-grad: linear-gradient(to right, var(--dark-yellow), var(--dark-red));
+    --nav-width: 4em;
+    --font-text: "sofia-pro",sans-serif;
+    --font-code: 'JetBrains Mono', monospace;
+    --font-navbar: 'Bungee', cursive;
+    --max-width-bp: 768px;
+    --logo-width: 60px;
+    --global-font-size: 18px;
+    --icons-fs: 30px;
+    --default-transition: 1s ease;
+
+    /* dash app */
+    --colors-background: var(--gray6);
+    --colors-text: white;
+}

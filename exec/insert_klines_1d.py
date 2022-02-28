@@ -1,6 +1,7 @@
 import sys
 sys.path.append(".")
-from trading_tool.db import create_connection, select_query
+from trading_tool.db import create_connection, select_query, SAMPLE_SYMBOLS
+
 from trading_tool.binance import get_kline
 from datetime import datetime
 from binance.client import Client
@@ -18,20 +19,31 @@ def main():
     client = Client(actual_api_key, actual_secret_key)
 
     conn = create_connection("trading_tool.db")
-    symbols = select_query(conn, table_name="symbols")
+    sampel_symbols = list(map(lambda symbol: "'" + symbol + "'", SAMPLE_SYMBOLS))
+    sample_symbols = ",".join(sampel_symbols)
+    symbols = pd.read_sql(
+        f"SELECT * FROM symbols WHERE symbol IN ({sample_symbols})", 
+        conn
+    )
 
     # loop over symbols and call get_kline
 
     start_datetime = datetime(2018, 1, 1)
 
     df_klines = []
-    # n_klines = symbols.shape[0]
-    n_klines = 20
+    n_klines = symbols.shape[0]
     for i in range(n_klines):
         print("--- Progress %04.2f ----"%(100 * i / n_klines))
         row = symbols.iloc[i]
         symbol = row[1]
-        df = get_kline(client, start_datetime, symbol)
+        df = get_kline(
+            client=client, 
+            start_datetime=start_datetime, 
+            symbol=symbol, 
+            interval="1d"
+        )
+        print(symbol)
+        print(df.head())
         df["id_symbol"] = row[0]
         df_klines.append(df)
         print(f"Loaded kline_1d for {symbol}")
