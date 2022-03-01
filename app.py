@@ -5,6 +5,7 @@ import pandas as pd
 from datetime import datetime, date, timedelta
 from trading_tool.db import create_connection, get_symbols, get_klines_1d
 from trading_tool.binance import get_kline
+from trading_tool.strategy import simple_strategy
 import json
 from binance.client import Client
 import configparser
@@ -74,6 +75,7 @@ app.layout = html.Div([
                             id='symbols'
                         ), 
                     ]),
+
                     html.Div([
                         html.Label(
                             "Select a date range:", 
@@ -88,13 +90,8 @@ app.layout = html.Div([
                             end_date=date.today()
                         ),
                     ],
-                    className="date_range-container")
-                ],
-                className="options1-container"
-            ), 
+                    className="date_range-container"), 
 
-            html.Div(
-                [
                     html.Div([
                         html.Label(
                             "Choose a day in graph:", 
@@ -109,26 +106,8 @@ app.layout = html.Div([
                         )    
                     ],
                     className="date_range-container"),
-
-                    html.Div([
-                        html.Label(
-                            "Choose delta parameter:", 
-                            form="delta"
-                        ),
-                        dcc.Slider(0, 0.01, value=0.005, id="delta") 
-                    ],
-                    className="date_range-container"),
-
-                    html.Div([
-                        html.Label(
-                            "Choose alpha parameter:", 
-                            form="day_picked"
-                        ),
-                        dcc.Slider(0, 1, value=0.2, id="alpha")    
-                    ],
-                    className="date_range-container"),
                 ],
-                className="options2-container"
+                className="options1-container"
             ), 
 
         ], 
@@ -137,6 +116,31 @@ app.layout = html.Div([
 
     html.Div(
         [
+
+            html.Div(
+                [
+
+                    html.Div([
+                        html.Label(
+                            "Choose delta parameter:", 
+                            form="delta"
+                        ),
+                        dcc.Slider(0, 0.03, value=0.01, step=0.002, id="delta") 
+                    ],
+                    className="date_range-container"),
+
+                    html.Div([
+                        html.Label(
+                            "Choose alpha parameter:", 
+                            form="day_picked"
+                        ),
+                        dcc.Slider(0, 0.2, value=0.08, step=0.01, id="alpha")    
+                    ],
+                    className="date_range-container"),
+                ],
+                className="options2-container"
+            ), 
+
             html.Div(
                 [
                     dcc.Graph(
@@ -149,18 +153,29 @@ app.layout = html.Div([
             ),
             html.Div(
                 [
-                    html.P("Start:"), 
-                    html.Div("1 / 1", id="start", className="big-numbers")
+                    html.P("Start Wallet:"), 
+                    html.Div(
+                        [
+                            html.P("1", id="start-wallet-1", className="big-numbers"), 
+                            html.P("/", className="space"), 
+                            html.P("1", id="start-wallet-2", className="big-numbers")
+                        ], 
+                        className="wallet")
                 ], 
                 className="result1-container"
             ),
             html.Div(
                 [
-                    html.P("Result:"), 
-                    html.Div("1 / 1", id="result", className="big-numbers")
+                    html.P("End Wallet:"), 
+                    html.Div(
+                        [
+                            html.P(id="end-wallet-1", className="big-numbers"), 
+                            html.P("/", className="space"), 
+                            html.P(id="end-wallet-2", className="big-numbers")
+                        ], className="wallet")
                 ], 
                 className="result2-container"
-            ),
+            )
         ], 
         className="main-container-2"
     ), 
@@ -238,6 +253,8 @@ def get_clicked_day(clickData):
 
 @app.callback(
     Output("candle_1m", "figure"), 
+    Output("end-wallet-1", "children"), 
+    Output("end-wallet-2", "children"), 
     Input("day_picked", "date"), 
     Input('symbols', 'value'),
     Input('delta', 'value'),
@@ -262,6 +279,10 @@ def get_candle_1m_plot(day, symbol, delta, alpha):
         lambda row: row / actual
     )
 
+    buy, sell, end_wallet = simple_strategy(df=df, alpha=alpha, delta=delta)
+    break_points = buy + sell + [df['dateTime'].iloc[-1]]
+    break_points.sort()
+
     fig = go.Figure(
         data=[
             go.Candlestick(
@@ -277,26 +298,30 @@ def get_candle_1m_plot(day, symbol, delta, alpha):
         ]
     )
 
+    time_aux = df['dateTime'].iloc[0]
+    for break_point in break_points:
 
-    fig.add_trace(
-        go.Scatter(
-            x=[df['dateTime'].min(), df["dateTime"].max()], 
-            y=[1 - delta]*2, 
-            mode='lines', 
-            name="buy limit", 
-            line = dict(width=4, dash='dash')
-        )
-    )
+        y = df.loc[df["dateTime"] == time_aux]["open"].iloc[0]
 
-    fig.add_trace(
-        go.Scatter(
-            x=[df['dateTime'].min(), df["dateTime"].max()], 
-            y=[1 + delta]*2, 
-            mode='lines', 
-            name="sell limit", 
-            line = dict(width=4, dash='dash')
+        fig.add_trace(
+            go.Scatter(
+                x=[time_aux, break_point], 
+                y=[y - delta]*2, 
+                mode='lines', 
+                line = dict(width=2, dash='dash', color="red")
+            )
         )
-    )
+
+        fig.add_trace(
+            go.Scatter(
+                x=[time_aux, break_point], 
+                y=[y + delta]*2, 
+                mode='lines', 
+                line = dict(width=2, dash='dash', color="green")
+            )
+        )
+        time_aux = break_point
+
 
     fig.update_layout(
         {
@@ -317,8 +342,9 @@ def get_candle_1m_plot(day, symbol, delta, alpha):
             'yanchor': 'top'})
 
     fig.update_layout(xaxis_rangeslider_visible=False)
+    fig.update_layout(showlegend=False)
 
-    return fig
+    return fig, round(end_wallet[0], 3), round(end_wallet[1], 3)
 
 
 

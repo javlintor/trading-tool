@@ -43,11 +43,10 @@ a:hover {
 
 .main-container {
     display: grid;
-    grid-template-columns: 1fr 400px;
-    grid-template-rows: 200px 400px;
+    grid-template-columns: 1fr 350px;
+    grid-template-rows: 600px;
     grid-template-areas: 
-        "figure options1"
-        "figure options2";
+        "figure options1";
     gap: 50px;
     justify-content: flex-start;
     background-color: var(--gray5);
@@ -59,8 +58,9 @@ a:hover {
 .main-container-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 600px 200px;
+    grid-template-rows: 200px 600px 200px;
     grid-template-areas: 
+        "options2 options2"
         "figure figure"
         "result1 result2";
     gap: 50px;
@@ -164,6 +164,15 @@ a:hover {
 .big-numbers {
     font-size: 2rem;
     color: var(--dark-yellow);
+}
+
+.space{
+    padding: 0 10px;
+    font-size: 2rem;
+}
+
+.wallet * {
+    display: inline;
 }
 
 @media (max-width: 1200px) {
