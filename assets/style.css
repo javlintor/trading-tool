@@ -5,10 +5,20 @@
     word-spacing: 3px;
 }
 
+a {
+    text-decoration: none;
+    color: var(--dark-yellow);
+    font-family: var(--font-text);
+    padding-left: 10px;
+}
+
+a:hover {
+    color: var(--light-yellow);
+}
+
 .body {
     background-color: var(--colors-background);
     color: var(--colors-text);
-    height: 200vh;
     padding: 10px 50px;
     font-family: var(--font-text);
 }
@@ -22,7 +32,7 @@
 
 .title {
     font-size: 3rem;
-    color: var(--light-yellow);
+    color: var(--dark-yellow);
     padding: 10px 20px 0 0 ;
 }
 
@@ -34,7 +44,7 @@
 .main-container {
     display: grid;
     grid-template-columns: 1fr 400px;
-    grid-template-rows: 300px 300px;
+    grid-template-rows: 200px 400px;
     grid-template-areas: 
         "figure options1"
         "figure options2";
@@ -48,10 +58,11 @@
 
 .main-container-2 {
     display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: 600px;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 600px 200px;
     grid-template-areas: 
-        "figure";
+        "figure figure"
+        "result1 result2";
     gap: 50px;
     justify-content: flex-start;
     background-color: var(--gray5);
@@ -62,6 +73,30 @@
 
 .candle_1m-container {
     grid-area: figure;
+    padding: 4px;
+    border-radius: 20px;
+    background-color: var(--colors-background);
+}
+
+.result1-container {
+    grid-area: result1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 20px;
+    padding: 4px;
+    border-radius: 20px;
+    background-color: var(--colors-background);
+}
+
+.result2-container {
+    grid-area: result2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 20px;
     padding: 4px;
     border-radius: 20px;
     background-color: var(--colors-background);
@@ -98,7 +133,7 @@
 .options2-container {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-evenly;
     padding-left: 30px;
     grid-area: options2;
     background-color: var(--colors-background);
@@ -115,4 +150,29 @@
     display: flex;
     justify-content: center;
     flex-direction: column;
+}
+
+
+.footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 200px;
+}
+
+
+.big-numbers {
+    font-size: 2rem;
+    color: var(--dark-yellow);
+}
+
+@media (max-width: 1200px) {
+    .main-container {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 600px 300px;
+        grid-template-areas: 
+            "figure figure"
+            "options1 options2";
+
+    }
 }

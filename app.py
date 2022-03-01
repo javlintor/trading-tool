@@ -106,9 +106,27 @@ app.layout = html.Div([
                             max_date_allowed=max_date_allowed,
                             initial_visible_month=initial_visible_month,
                             date=date.today()
-                        ),
+                        )    
                     ],
-                    className="date_range-container")
+                    className="date_range-container"),
+
+                    html.Div([
+                        html.Label(
+                            "Choose delta parameter:", 
+                            form="delta"
+                        ),
+                        dcc.Slider(0, 0.01, value=0.005, id="delta") 
+                    ],
+                    className="date_range-container"),
+
+                    html.Div([
+                        html.Label(
+                            "Choose alpha parameter:", 
+                            form="day_picked"
+                        ),
+                        dcc.Slider(0, 1, value=0.2, id="alpha")    
+                    ],
+                    className="date_range-container"),
                 ],
                 className="options2-container"
             ), 
@@ -128,10 +146,34 @@ app.layout = html.Div([
                     ),
                 ], 
                 className="candle_1m-container"
-            )
+            ),
+            html.Div(
+                [
+                    html.P("Start:"), 
+                    html.Div("1 / 1", id="start", className="big-numbers")
+                ], 
+                className="result1-container"
+            ),
+            html.Div(
+                [
+                    html.P("Result:"), 
+                    html.Div("1 / 1", id="result", className="big-numbers")
+                ], 
+                className="result2-container"
+            ),
         ], 
         className="main-container-2"
+    ), 
+
+    html.Div(
+        [
+            html.P("Copyright © 2022"), 
+            html.A("javlintor", href="https://github.com/javlintor", target="_blank")
+        ], 
+        className="footer"
     )
+
+
 ], className="body")
 
 @app.callback(
@@ -197,9 +239,11 @@ def get_clicked_day(clickData):
 @app.callback(
     Output("candle_1m", "figure"), 
     Input("day_picked", "date"), 
-    Input('symbols', 'value')
+    Input('symbols', 'value'),
+    Input('delta', 'value'),
+    Input('alpha', 'value'),
 )
-def get_candle_1m_plot(day, symbol):
+def get_candle_1m_plot(day, symbol, delta, alpha):
 
     day_datetime = datetime.strptime(day, "%Y-%m-%d")
     tomorrow_datetime = day_datetime + timedelta(1)
@@ -212,6 +256,12 @@ def get_candle_1m_plot(day, symbol):
         interval="1m"
     )
 
+    actual = df.loc[0, "open"]
+
+    df[["open", "high", "low", "close"]] = df[["open", "high", "low", "close"]].apply(
+        lambda row: row / actual
+    )
+
     fig = go.Figure(
         data=[
             go.Candlestick(
@@ -219,9 +269,33 @@ def get_candle_1m_plot(day, symbol):
                 open=df['open'],
                 high=df['high'],
                 low=df['low'],
-                close=df['close']
+                close=df['close'], 
+                increasing_line_color= 'cyan',
+                decreasing_line_color= 'yellow', 
+                name="candle"
             )
         ]
+    )
+
+
+    fig.add_trace(
+        go.Scatter(
+            x=[df['dateTime'].min(), df["dateTime"].max()], 
+            y=[1 - delta]*2, 
+            mode='lines', 
+            name="buy limit", 
+            line = dict(width=4, dash='dash')
+        )
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=[df['dateTime'].min(), df["dateTime"].max()], 
+            y=[1 + delta]*2, 
+            mode='lines', 
+            name="sell limit", 
+            line = dict(width=4, dash='dash')
+        )
     )
 
     fig.update_layout(
@@ -236,7 +310,7 @@ def get_candle_1m_plot(day, symbol):
 
     fig.update_layout(
         title={
-            'text': symbol,
+            'text': symbol + " " + day + " NORMALIZED",
             'y':0.9,
             'x':0.5,
             'xanchor': 'center',
