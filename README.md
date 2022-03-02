@@ -36,6 +36,21 @@ ACTUAL_API_KEY = <your-actual-api-key>
 ACTUAL_SECRET_KEY = <your-actual-secret-key>
 ```
 
+## Create database
+Create an empty sqlite3 database file: `trading_tool.db`
+
+# Load data
+Load master data from binance:
+```shell
+python exec/create.py
+```
+```shell
+python exec/insert_symbols.py
+```
+```shell
+python exec/insert_klines_1d.py
+```
+
 ## Run the app in your browser
 and finally run it
 ```shell
