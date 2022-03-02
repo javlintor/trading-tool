@@ -137,6 +137,30 @@ app.layout = html.Div([
                         dcc.Slider(0, 0.2, value=0.08, step=0.01, id="alpha")    
                     ],
                     className="date_range-container"),
+
+                    html.Div([
+                        html.Label(
+                            "Start wallet:", 
+                        ),
+                        html.Div(
+                            [
+                                dcc.Input(
+                                    id="start-wallet-1",
+                                    type="number",
+                                    placeholder=None,
+                                    value=1
+                                ),
+                                dcc.Input(
+                                    id="start-wallet-2",
+                                    type="number",
+                                    placeholder=None,
+                                    value=1
+                                ) 
+                            ], 
+                            className="num-input-container"
+                        )   
+                    ],
+                    className="date_range-container"),
                 ],
                 className="options2-container"
             ), 
@@ -156,9 +180,9 @@ app.layout = html.Div([
                     html.P("Start Wallet:"), 
                     html.Div(
                         [
-                            html.P("1", id="start-wallet-1", className="big-numbers"), 
+                            html.P(id="start-wallet-1-print", className="big-numbers"), 
                             html.P("/", className="space"), 
-                            html.P("1", id="start-wallet-2", className="big-numbers")
+                            html.P(id="start-wallet-2-print", className="big-numbers")
                         ], 
                         className="wallet")
                 ], 
@@ -239,7 +263,6 @@ def get_candle_1d_plot(symbol, start_date, end_date):
 @app.callback(
     Output('day_picked', 'date'),
     Input('candle_1d', 'clickData'), 
-    
 )
 def get_clicked_day(clickData):
 
@@ -252,6 +275,15 @@ def get_clicked_day(clickData):
 
 
 @app.callback(
+    Output('start-wallet-1-print', 'children'),
+    Output('start-wallet-2-print', 'children'),
+    Input('start-wallet-1', 'value'),
+    Input('start-wallet-2', 'value'),
+)
+def render_start_wallet(a, b):
+    return a, b
+
+@app.callback(
     Output("candle_1m", "figure"), 
     Output("end-wallet-1", "children"), 
     Output("end-wallet-2", "children"), 
@@ -259,8 +291,10 @@ def get_clicked_day(clickData):
     Input('symbols', 'value'),
     Input('delta', 'value'),
     Input('alpha', 'value'),
+    Input('start-wallet-1', 'value'),
+    Input('start-wallet-2', 'value'),
 )
-def get_candle_1m_plot(day, symbol, delta, alpha):
+def get_candle_1m_plot(day, symbol, delta, alpha, start_wallet_1, start_wallet_2):
 
     day_datetime = datetime.strptime(day, "%Y-%m-%d")
     tomorrow_datetime = day_datetime + timedelta(1)
@@ -279,7 +313,8 @@ def get_candle_1m_plot(day, symbol, delta, alpha):
         lambda row: row / actual
     )
 
-    buy, sell, end_wallet = simple_strategy(df=df, alpha=alpha, delta=delta)
+    wallet = (start_wallet_1, start_wallet_2)
+    buy, sell, end_wallet = simple_strategy(df=df, alpha=alpha, delta=delta, wallet=wallet)
     break_points = buy + sell + [df['dateTime'].iloc[-1]]
     break_points.sort()
 

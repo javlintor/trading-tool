@@ -58,7 +58,7 @@ a:hover {
 .main-container-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 200px 600px 200px;
+    grid-template-rows: 300px 600px 200px;
     grid-template-areas: 
         "options2 options2"
         "figure figure"
@@ -173,6 +173,16 @@ a:hover {
 
 .wallet * {
     display: inline;
+}
+
+#start-wallet-1, #start-wallet-2 {
+    width: 80px;
+}
+
+.num-input-container {
+    display: flex;
+    justify-content: flex-start;
+    gap: 20px;
 }
 
 @media (max-width: 1200px) {
