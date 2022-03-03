@@ -1,6 +1,12 @@
 # Traiding tool with Binance and Kucoin 
 This repo contains a [Dash app](https://plotly.com/dash/) for traiding using Binance and Kucoin public APIs information. To run it, we recommend to create a virtual environment and install required dependencies.
 
+## Verify python version
+Make sure your python version is greater or equal to 3.0.0
+```shell 
+python --version
+```
+
 ## Create a virtual environment
 To run the app, first create a virtual environment using python module `virtualenv`:
 ```shell 
@@ -17,10 +23,7 @@ source <env name>/bin/activate
 source <env name>/Scripts/activate
 ```
 
-If you name your environment something different from `my_env`, do not forget to add it to the `.gitignore` file. When finished, remember to deactivate virtual environment
-```shell 
-deactivate
-```
+If you name your environment something different from `my_env`, do not forget to add it to the `.gitignore` file. 
 
 ## Install dependencies
 Then install dependencies with pip:
@@ -57,3 +60,8 @@ and finally run it
 python app.py
 ```
 
+# Deactive virtual environment
+When finished, remember to deactivate virtual environment
+```shell 
+deactivate
+```
