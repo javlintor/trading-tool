@@ -40,7 +40,7 @@ ACTUAL_SECRET_KEY = <your-actual-secret-key>
 ```
 
 ## Create database
-Create an empty sqlite3 database file: `trading_tool.db`:
+Create an empty sqlite3 database file named `trading_tool.db`:
 ```shell
 touch trading_tool.db
 ```
