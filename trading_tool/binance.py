@@ -52,3 +52,10 @@ def get_kline(
     df.drop("ignore", axis=1, inplace=True)
 
     return df
+
+def get_last_price(client, symbol):
+
+    ret = client.get_recent_trades(symbol=symbol)
+    last_price = float(ret[-1]["price"])
+
+    return last_price 

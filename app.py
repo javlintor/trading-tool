@@ -1,10 +1,11 @@
 from dash import Dash, html, dcc, Input, Output
+import dash_mantine_components as dmc
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, time
 from trading_tool.db import create_connection, get_symbols, get_klines_1d
-from trading_tool.binance import get_kline
+from trading_tool.binance import get_kline, get_last_price
 from trading_tool.strategy import simple_strategy
 import json
 from binance.client import Client
@@ -74,7 +75,8 @@ app.layout = html.Div([
                             value="BTCUSDT",
                             id='symbols'
                         ), 
-                    ]),
+                    ], 
+                    className="symbols-container"),
 
                     html.Div([
                         html.Label(
@@ -90,22 +92,41 @@ app.layout = html.Div([
                             end_date=date.today()
                         ),
                     ],
-                    className="date_range-container"), 
+                    className="flex-container"), 
 
                     html.Div([
-                        html.Label(
-                            "Choose a day in graph:", 
-                            form="day_picked"
+                        html.P(
+                            "Choose time interval for analysis:", 
+                            id="time_range-label"
                         ),
                         dcc.DatePickerSingle(
-                            id='day_picked',
+                            id='start_day',
                             min_date_allowed=min_date_allowed,
                             max_date_allowed=max_date_allowed,
                             initial_visible_month=initial_visible_month,
                             date=date.today()
-                        )    
+                        ), 
+                        dmc.TimeInput(
+                            label="Start time:",
+                            id="start_time",
+                            value=datetime.combine(date.today(), datetime.min.time()),
+                            class_name="Timeinput"
+                        ),   
+                        dcc.DatePickerSingle(
+                            id='end_day',
+                            min_date_allowed=min_date_allowed,
+                            max_date_allowed=max_date_allowed,
+                            initial_visible_month=initial_visible_month,
+                            date=date.today()
+                        ), 
+                        dmc.TimeInput(
+                            label="End time:",
+                            id="end_time",
+                            value=datetime.now().replace(microsecond=0), 
+                            class_name="Timeinput"
+                        ),   
                     ],
-                    className="date_range-container"),
+                    className="time_range-container"),
                 ],
                 className="options1-container"
             ), 
@@ -126,8 +147,7 @@ app.layout = html.Div([
                             form="delta"
                         ),
                         dcc.Slider(0, 0.03, value=0.01, step=0.002, id="delta") 
-                    ],
-                    className="date_range-container"),
+                    ]),
 
                     html.Div([
                         html.Label(
@@ -135,8 +155,7 @@ app.layout = html.Div([
                             form="day_picked"
                         ),
                         dcc.Slider(0, 0.2, value=0.08, step=0.01, id="alpha")    
-                    ],
-                    className="date_range-container"),
+                    ]),
 
                     html.Div([
                         html.Label(
@@ -145,22 +164,24 @@ app.layout = html.Div([
                         html.Div(
                             [
                                 dcc.Input(
-                                    id="start-wallet-1",
+                                    id="start-wallet-ratio-1",
                                     type="number",
                                     placeholder=None,
-                                    value=1
+                                    value=0.3, 
+                                    step=0.01
                                 ),
                                 dcc.Input(
-                                    id="start-wallet-2",
+                                    id="start-wallet-ratio-2",
                                     type="number",
                                     placeholder=None,
-                                    value=1
+                                    value=0.3, 
+                                    step=0.01
                                 ) 
                             ], 
                             className="num-input-container"
                         )   
                     ],
-                    className="date_range-container"),
+                    className="flex-container"),
                 ],
                 className="options2-container"
             ), 
@@ -177,12 +198,15 @@ app.layout = html.Div([
             ),
             html.Div(
                 [
-                    html.P("Start Wallet:"), 
                     html.Div(
                         [
-                            html.P(id="start-wallet-1-print", className="big-numbers"), 
-                            html.P("/", className="space"), 
-                            html.P(id="start-wallet-2-print", className="big-numbers")
+                            html.P("Start Wallet", className="title-wallet"), 
+                            html.P("A Coin", id="start-wallet-1-title"), 
+                            html.P("B Coin", id="start-wallet-2-title"),
+                            html.P(id="start-wallet-1", className="big-numbers"), 
+                            html.P(id="start-wallet-2", className="big-numbers"),
+                            html.P("Total (USD); ", className="total-text"),
+                            html.P(id="start-wallet-total", className="big-numbers")
                         ], 
                         className="wallet")
                 ], 
@@ -190,12 +214,15 @@ app.layout = html.Div([
             ),
             html.Div(
                 [
-                    html.P("End Wallet:"), 
                     html.Div(
                         [
+                            html.P("End Wallet", className="title-wallet"), 
+                            html.P("A Coin", id="end-wallet-1-title"), 
+                            html.P("B Coin", id="end-wallet-2-title"),
                             html.P(id="end-wallet-1", className="big-numbers"), 
-                            html.P("/", className="space"), 
-                            html.P(id="end-wallet-2", className="big-numbers")
+                            html.P(id="end-wallet-2", className="big-numbers"), 
+                            html.P("Total (USD); ", className="total-text"),
+                            html.P(id="end-wallet-total", className="big-numbers")
                         ], className="wallet")
                 ], 
                 className="result2-container"
@@ -261,60 +288,85 @@ def get_candle_1d_plot(symbol, start_date, end_date):
 
 
 @app.callback(
-    Output('day_picked', 'date'),
+    Output('start_day', 'date'),
+    Output('end_day', 'date'),
     Input('candle_1d', 'clickData'), 
 )
 def get_clicked_day(clickData):
 
     if clickData:
         day = clickData["points"][0]["x"]
-        return day
+
     else: 
-        return date.today().strftime("%Y-%m-%d")
-        # return '2022-02-28'
+        day =  date.today().strftime("%Y-%m-%d")
 
+    return day, day
 
-@app.callback(
-    Output('start-wallet-1-print', 'children'),
-    Output('start-wallet-2-print', 'children'),
-    Input('start-wallet-1', 'value'),
-    Input('start-wallet-2', 'value'),
-)
-def render_start_wallet(a, b):
-    return a, b
 
 @app.callback(
     Output("candle_1m", "figure"), 
     Output("end-wallet-1", "children"), 
     Output("end-wallet-2", "children"), 
-    Input("day_picked", "date"), 
+    Output("start-wallet-1", "children"), 
+    Output("start-wallet-2", "children"), 
+    Output("start-wallet-total", "children"),
+    Output("end-wallet-total", "children"),
+    Input("start_day", "date"), 
+    Input("end_day", "date"), 
+    Input("start_time", "value"), 
+    Input("end_time", "value"), 
     Input('symbols', 'value'),
     Input('delta', 'value'),
     Input('alpha', 'value'),
-    Input('start-wallet-1', 'value'),
-    Input('start-wallet-2', 'value'),
+    Input('start-wallet-ratio-1', 'value'),
+    Input('start-wallet-ratio-2', 'value'),
 )
-def get_candle_1m_plot(day, symbol, delta, alpha, start_wallet_1, start_wallet_2):
+def get_candle_1m_plot(start_day, end_day, start_time, end_time, symbol, delta, alpha, start_wallet_ratio_1, start_wallet_ratio_2):
 
-    day_datetime = datetime.strptime(day, "%Y-%m-%d")
-    tomorrow_datetime = day_datetime + timedelta(1)
+    print(start_day)
+    print(end_day)
+    print(start_time)
+    print(end_time)
+
+    start_day = datetime.strptime(start_day, "%Y-%m-%d")
+    end_day = datetime.strptime(end_day, "%Y-%m-%d")
+    start_time = datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%S").time()
+    end_time = datetime.strptime(end_time, "%Y-%m-%dT%H:%M:%S").time()
+
+    start_datetime = datetime.combine(start_day, start_time)
+    end_datetime = datetime.combine(end_day, end_time)
+
+    time_diff =  end_datetime - start_datetime
+
+    if time_diff.seconds // 60 < 60:
+        start_datetime = start_datetime - timedelta(minutes=180)
+
+    print(start_datetime)
+    print(end_datetime)    
 
     df = get_kline(
         client=client, 
-        start_datetime=day_datetime,
-        end_datetime=tomorrow_datetime,
+        start_datetime=start_datetime,
+        end_datetime=end_datetime,
         symbol=symbol, 
         interval="1m"
     )
 
-    actual = df.loc[0, "open"]
+    first = df.iloc[0]["close"]
+    last = df.iloc[-1]["close"]
+    start_wallet_1 = start_wallet_ratio_1
+    start_wallet_2 = first*start_wallet_ratio_2
 
-    df[["open", "high", "low", "close"]] = df[["open", "high", "low", "close"]].apply(
-        lambda row: row / actual
-    )
+    # df[["open", "high", "low", "close"]] = df[["open", "high", "low", "close"]].apply(
+    #     lambda row: row / actual
+    # )
 
     wallet = (start_wallet_1, start_wallet_2)
     buy, sell, end_wallet = simple_strategy(df=df, alpha=alpha, delta=delta, wallet=wallet)
+
+    start_wallet_total = wallet[0]*first + wallet[1]
+    end_wallet_total = end_wallet[0]*last + end_wallet[1]
+
     break_points = buy + sell + [df['dateTime'].iloc[-1]]
     break_points.sort()
 
@@ -326,8 +378,8 @@ def get_candle_1m_plot(day, symbol, delta, alpha, start_wallet_1, start_wallet_2
                 high=df['high'],
                 low=df['low'],
                 close=df['close'], 
-                increasing_line_color= 'cyan',
-                decreasing_line_color= 'yellow', 
+                increasing_line_color='cyan',
+                decreasing_line_color='yellow', 
                 name="candle"
             )
         ]
@@ -336,12 +388,12 @@ def get_candle_1m_plot(day, symbol, delta, alpha, start_wallet_1, start_wallet_2
     time_aux = df['dateTime'].iloc[0]
     for break_point in break_points:
 
-        y = df.loc[df["dateTime"] == time_aux]["open"].iloc[0]
+        y = df.loc[df["dateTime"] == time_aux]["close"].iloc[0]
 
         fig.add_trace(
             go.Scatter(
                 x=[time_aux, break_point], 
-                y=[y - delta]*2, 
+                y=[y*(1 - delta)]*2, 
                 mode='lines', 
                 line = dict(width=2, dash='dash', color="red")
             )
@@ -350,7 +402,7 @@ def get_candle_1m_plot(day, symbol, delta, alpha, start_wallet_1, start_wallet_2
         fig.add_trace(
             go.Scatter(
                 x=[time_aux, break_point], 
-                y=[y + delta]*2, 
+                y=[y*(1 + delta)]*2, 
                 mode='lines', 
                 line = dict(width=2, dash='dash', color="green")
             )
@@ -370,7 +422,7 @@ def get_candle_1m_plot(day, symbol, delta, alpha, start_wallet_1, start_wallet_2
 
     fig.update_layout(
         title={
-            'text': symbol + " " + day + " NORMALIZED",
+            'text': symbol,
             'y':0.9,
             'x':0.5,
             'xanchor': 'center',
@@ -379,7 +431,7 @@ def get_candle_1m_plot(day, symbol, delta, alpha, start_wallet_1, start_wallet_2
     fig.update_layout(xaxis_rangeslider_visible=False)
     fig.update_layout(showlegend=False)
 
-    return fig, round(end_wallet[0], 3), round(end_wallet[1], 3)
+    return fig, round(end_wallet[0], 2), round(end_wallet[1], 2), round(start_wallet_1, 2), round(start_wallet_2, 2), round(start_wallet_total, 2), round(end_wallet_total, 2)
 
 
 
