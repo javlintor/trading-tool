@@ -58,7 +58,7 @@ a:hover {
 .main-container-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 300px 600px 1fr;
+    grid-template-rows: 400px 600px 1fr;
     grid-template-areas: 
         "options2 options2"
         "figure figure"
@@ -153,6 +153,12 @@ a:hover {
 .flex-container {
     display: flex;
     justify-content: center;
+    align-items: center;
+}
+
+.flex-container-col {
+    display: flex;
+    justify-content: center;
     flex-direction: column;
     align-items: center;
 }
@@ -177,8 +183,8 @@ a:hover {
 
 .wallet {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 20px 50px 70px 30px 30px;
+    grid-template-columns: 200px 200px;
+    grid-template-rows: 60px 20px 70px 20px 30px;
     grid-template-areas: 
     "title title"
     "A_title B_title"
@@ -190,11 +196,12 @@ a:hover {
     gap: 10px;
 }
 
-
-
 .title-wallet {
     grid-area: title;
     font-size: 2rem;
+    margin-bottom: 60px;
+    font-weight: 400;
+    text-decoration: underline;
 }
 
 #start-wallet-1-title, #end-wallet-1-title {

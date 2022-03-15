@@ -1,4 +1,5 @@
 from dash import Dash, html, dcc, Input, Output
+import dash_daq as daq
 import dash_mantine_components as dmc
 import plotly.express as px
 import plotly.graph_objects as go
@@ -92,7 +93,7 @@ app.layout = html.Div([
                             end_date=date.today()
                         ),
                     ],
-                    className="flex-container"), 
+                    className="flex-container-col"), 
 
                     html.Div([
                         html.P(
@@ -135,56 +136,74 @@ app.layout = html.Div([
         className="main-container"
     ),
 
-    html.Div(
-        [
+    # main-container2
+    html.Div([
+        # options2-container
+        html.Div([
 
-            html.Div(
-                [
+            # delta 
+            html.Div([
+                html.Label(
+                    "Choose delta parameter:", 
+                    form="delta"
+                ),
+                dcc.Slider(0, 0.03, value=0.01, step=0.002, id="delta") 
+            ]),
 
+            # alpha
+            html.Div([
+                html.Label(
+                    "Choose alpha parameter:", 
+                    form="day_picked"
+                ),
+                dcc.Slider(0, 0.2, value=0.08, step=0.01, id="alpha")    
+            ]),
+
+            # wallet + switch
+            html.Div([
+                # wallet
+                html.Div([
+                    html.Label(
+                        "Start wallet:", 
+                    ),
                     html.Div([
-                        html.Label(
-                            "Choose delta parameter:", 
-                            form="delta"
+                        dcc.Input(
+                            id="start-wallet-ratio-1",
+                            type="number",
+                            placeholder=None,
+                            value=0.3, 
+                            step=0.01
                         ),
-                        dcc.Slider(0, 0.03, value=0.01, step=0.002, id="delta") 
-                    ]),
+                        dcc.Input(
+                            id="start-wallet-ratio-2",
+                            type="number",
+                            placeholder=None,
+                            value=0.3, 
+                            step=0.01
+                        )
+                    ], 
+                    className="num-input-container"
+                    )
+                ], 
+                className="flex-container-col"
+                ), 
 
-                    html.Div([
-                        html.Label(
-                            "Choose alpha parameter:", 
-                            form="day_picked"
-                        ),
-                        dcc.Slider(0, 0.2, value=0.08, step=0.01, id="alpha")    
-                    ]),
-
-                    html.Div([
-                        html.Label(
-                            "Start wallet:", 
-                        ),
-                        html.Div(
-                            [
-                                dcc.Input(
-                                    id="start-wallet-ratio-1",
-                                    type="number",
-                                    placeholder=None,
-                                    value=0.3, 
-                                    step=0.01
-                                ),
-                                dcc.Input(
-                                    id="start-wallet-ratio-2",
-                                    type="number",
-                                    placeholder=None,
-                                    value=0.3, 
-                                    step=0.01
-                                ) 
-                            ], 
-                            className="num-input-container"
-                        )   
-                    ],
-                    className="flex-container"),
-                ],
-                className="options2-container"
-            ), 
+                # switch 
+                html.Div([
+                    html.P("Switch trader"),
+                    daq.ToggleSwitch(
+                        id='reverse',
+                        value=False
+                    ),
+                ], 
+                className="flex-container-col"
+                )   
+            ],
+            className="flex-container"
+            )
+        ],
+        className="options2-container"
+        ), 
 
             html.Div(
                 [
@@ -205,7 +224,7 @@ app.layout = html.Div([
                             html.P("B Coin", id="start-wallet-2-title"),
                             html.P(id="start-wallet-1", className="big-numbers"), 
                             html.P(id="start-wallet-2", className="big-numbers"),
-                            html.P("Total (USD); ", className="total-text"),
+                            html.P("Total (USD) ", className="total-text"),
                             html.P(id="start-wallet-total", className="big-numbers")
                         ], 
                         className="wallet")
@@ -221,7 +240,7 @@ app.layout = html.Div([
                             html.P("B Coin", id="end-wallet-2-title"),
                             html.P(id="end-wallet-1", className="big-numbers"), 
                             html.P(id="end-wallet-2", className="big-numbers"), 
-                            html.P("Total (USD); ", className="total-text"),
+                            html.P("Total (USD) ", className="total-text"),
                             html.P(id="end-wallet-total", className="big-numbers")
                         ], className="wallet")
                 ], 
@@ -320,13 +339,9 @@ def get_clicked_day(clickData):
     Input('alpha', 'value'),
     Input('start-wallet-ratio-1', 'value'),
     Input('start-wallet-ratio-2', 'value'),
+    Input('reverse', 'value')
 )
-def get_candle_1m_plot(start_day, end_day, start_time, end_time, symbol, delta, alpha, start_wallet_ratio_1, start_wallet_ratio_2):
-
-    print(start_day)
-    print(end_day)
-    print(start_time)
-    print(end_time)
+def get_candle_1m_plot(start_day, end_day, start_time, end_time, symbol, delta, alpha, start_wallet_ratio_1, start_wallet_ratio_2, reverse):
 
     start_day = datetime.strptime(start_day, "%Y-%m-%d")
     end_day = datetime.strptime(end_day, "%Y-%m-%d")
@@ -341,8 +356,6 @@ def get_candle_1m_plot(start_day, end_day, start_time, end_time, symbol, delta, 
     if time_diff.seconds // 60 < 60:
         start_datetime = start_datetime - timedelta(minutes=180)
 
-    print(start_datetime)
-    print(end_datetime)    
 
     df = get_kline(
         client=client, 
@@ -362,7 +375,7 @@ def get_candle_1m_plot(start_day, end_day, start_time, end_time, symbol, delta, 
     # )
 
     wallet = (start_wallet_1, start_wallet_2)
-    buy, sell, end_wallet = simple_strategy(df=df, alpha=alpha, delta=delta, wallet=wallet)
+    buy, sell, end_wallet = simple_strategy(df=df, alpha=alpha, delta=delta, wallet=wallet, reverse=reverse)
 
     start_wallet_total = wallet[0]*first + wallet[1]
     end_wallet_total = end_wallet[0]*last + end_wallet[1]

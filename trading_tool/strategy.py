@@ -1,6 +1,6 @@
 from datetime import datetime
 
-def simple_strategy(df, alpha=0.1, delta=0.01, wallet=(1, 1)):
+def simple_strategy(df, alpha=0.1, delta=0.01, wallet=(1, 1), reverse=False):
     
     buy = []
     sell = []
@@ -33,6 +33,8 @@ def simple_strategy(df, alpha=0.1, delta=0.01, wallet=(1, 1)):
         df = df.loc[df["dateTime"] > next_brake]
     
         is_buy = buy_hor < sell_hor
+        if reverse:
+            is_buy = ~is_buy
         
         if is_buy:
 
