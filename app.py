@@ -34,106 +34,112 @@ initial_visible_month=date(2022, 2, 1)
 
 app.layout = html.Div([
 
-    html.Div(
-        [
-            html.H1('Trading-tool', className="title"),
-            html.Div([
-                html.P(
-                    'Lucas de Lecea', className="description-name"
-                ),
-                html.P(
-                    'Boosting group', className="description"
-                )
-            ])
-        ], 
-        className="header"
+    # header
+    html.Div([
+        html.H1('Trading-tool', className="title"),
+        html.Div([
+            html.P(
+                'Lucas de Lecea', className="description-name"
+            ),
+            html.P(
+                'Boosting group', className="description"
+            )
+        ])
+    ], 
+    className="header"
     ),
 
+    # horizontal line
     html.Hr(),
 
-    html.Div(
-        [
-            html.Div(
-                [
-                    dcc.Graph(
-                        id='candle_1d',
-                        responsive=True, 
-                        className="candle_plot"
-                    ),
-                ], 
-                className="candle_plot-container"
-            ), 
-
-            html.Div(
-                [
-                    html.Div([
-                        html.Label(
-                            "Select a symbol:", 
-                            form="symbols"
-                        ),
-                        dcc.Dropdown(
-                            options=get_symbols(conn), 
-                            value="BTCUSDT",
-                            id='symbols'
-                        ), 
-                    ], 
-                    className="symbols-container"),
-
-                    html.Div([
-                        html.Label(
-                            "Select a date range:", 
-                            form="date_range"
-                        ),
-                        dcc.DatePickerRange(
-                            id='date_range',
-                            min_date_allowed=min_date_allowed,
-                            max_date_allowed=max_date_allowed,
-                            initial_visible_month=initial_visible_month,
-                            start_date=date.today() - timedelta(365),
-                            end_date=date.today()
-                        ),
-                    ],
-                    className="flex-container-col"), 
-
-                    html.Div([
-                        html.P(
-                            "Choose time interval for analysis:", 
-                            id="time_range-label"
-                        ),
-                        dcc.DatePickerSingle(
-                            id='start_day',
-                            min_date_allowed=min_date_allowed,
-                            max_date_allowed=max_date_allowed,
-                            initial_visible_month=initial_visible_month,
-                            date=date.today()
-                        ), 
-                        dmc.TimeInput(
-                            label="Start time:",
-                            id="start_time",
-                            value=datetime.combine(date.today(), datetime.min.time()),
-                            class_name="Timeinput"
-                        ),   
-                        dcc.DatePickerSingle(
-                            id='end_day',
-                            min_date_allowed=min_date_allowed,
-                            max_date_allowed=max_date_allowed,
-                            initial_visible_month=initial_visible_month,
-                            date=date.today()
-                        ), 
-                        dmc.TimeInput(
-                            label="End time:",
-                            id="end_time",
-                            value=datetime.now().replace(microsecond=0), 
-                            class_name="Timeinput"
-                        ),   
-                    ],
-                    className="time_range-container"),
-                ],
-                className="options1-container"
-            ), 
-
+    # main container
+    html.Div([
+        # candle_plot-container
+        html.Div([
+            dcc.Graph(
+                id='candle_1d',
+                responsive=True, 
+                className="candle_plot"
+            ),
         ], 
-        className="main-container"
+        className="candle_plot-container"
+        ), 
+
+        # options1-container
+        html.Div([
+            # symbols container
+            html.Div([
+                html.Label(
+                    "Select a symbol:", 
+                    form="symbols"
+                ),
+                dcc.Dropdown(
+                    options=get_symbols(conn), 
+                    value="BTCUSDT",
+                    id='symbols'
+                ), 
+            ], 
+            className="symbols-container"
+            ),
+
+            # date_range
+            html.Div([
+                html.Label(
+                    "Select a date range:", 
+                    form="date_range"
+                ),
+                dcc.DatePickerRange(
+                    id='date_range',
+                    min_date_allowed=min_date_allowed,
+                    max_date_allowed=max_date_allowed,
+                    initial_visible_month=initial_visible_month,
+                    start_date=date.today() - timedelta(365),
+                    end_date=date.today()
+                ),
+            ],
+            className="flex-container-col"
+            ), 
+
+            # time range
+            html.Div([
+                html.P(
+                    "Choose time interval for analysis:", 
+                    id="time_range-label"
+                ),
+                dcc.DatePickerSingle(
+                    id='start_day',
+                    min_date_allowed=min_date_allowed,
+                    max_date_allowed=max_date_allowed,
+                    initial_visible_month=initial_visible_month,
+                    date=date.today()
+                ), 
+                dmc.TimeInput(
+                    label="Start time:",
+                    id="start_time",
+                    value=datetime.combine(date.today(), datetime.min.time()),
+                    class_name="Timeinput"
+                ),   
+                dcc.DatePickerSingle(
+                    id='end_day',
+                    min_date_allowed=min_date_allowed,
+                    max_date_allowed=max_date_allowed,
+                    initial_visible_month=initial_visible_month,
+                    date=date.today()
+                ), 
+                dmc.TimeInput(
+                    label="End time:",
+                    id="end_time",
+                    value=datetime.now().replace(microsecond=0), 
+                    class_name="Timeinput"
+                ),   
+            ],
+            className="time_range-container"),
+            ],
+        className="options1-container"
+        ), 
+
+    ], 
+    className="main-container"
     ),
 
     # main-container2
@@ -205,57 +211,59 @@ app.layout = html.Div([
         className="options2-container"
         ), 
 
-            html.Div(
-                [
-                    dcc.Graph(
-                        id='candle_1m',
-                        responsive=True, 
-                        className="candle_1m"
-                    ),
-                ], 
-                className="candle_1m-container"
+        # candle_1m
+        html.Div([
+            dcc.Graph(
+                id='candle_1m',
+                responsive=True, 
+                className="candle_1m"
             ),
-            html.Div(
-                [
-                    html.Div(
-                        [
-                            html.P("Start Wallet", className="title-wallet"), 
-                            html.P("A Coin", id="start-wallet-1-title"), 
-                            html.P("B Coin", id="start-wallet-2-title"),
-                            html.P(id="start-wallet-1", className="big-numbers"), 
-                            html.P(id="start-wallet-2", className="big-numbers"),
-                            html.P("Total (USD) ", className="total-text"),
-                            html.P(id="start-wallet-total", className="big-numbers")
-                        ], 
-                        className="wallet")
-                ], 
-                className="result1-container"
-            ),
-            html.Div(
-                [
-                    html.Div(
-                        [
-                            html.P("End Wallet", className="title-wallet"), 
-                            html.P("A Coin", id="end-wallet-1-title"), 
-                            html.P("B Coin", id="end-wallet-2-title"),
-                            html.P(id="end-wallet-1", className="big-numbers"), 
-                            html.P(id="end-wallet-2", className="big-numbers"), 
-                            html.P("Total (USD) ", className="total-text"),
-                            html.P(id="end-wallet-total", className="big-numbers")
-                        ], className="wallet")
-                ], 
-                className="result2-container"
-            )
         ], 
-        className="main-container-2"
+        className="candle_1m-container"
+        ),
+
+        # result1-container
+        html.Div([
+            html.Div(
+                [
+                    html.P("Start Wallet", className="title-wallet"), 
+                    html.P("A Coin", id="start-wallet-1-title"), 
+                    html.P("B Coin", id="start-wallet-2-title"),
+                    html.P(id="start-wallet-1", className="big-numbers"), 
+                    html.P(id="start-wallet-2", className="big-numbers"),
+                    html.P("Total (USD) ", className="total-text"),
+                    html.P(id="start-wallet-total", className="big-numbers")
+                ], 
+                className="wallet")
+        ], 
+        className="result1-container"
+        ),
+
+        # result2-container
+        html.Div([
+            html.Div([
+                    html.P("End Wallet", className="title-wallet"), 
+                    html.P("A Coin", id="end-wallet-1-title"), 
+                    html.P("B Coin", id="end-wallet-2-title"),
+                    html.P(id="end-wallet-1", className="big-numbers"), 
+                    html.P(id="end-wallet-2", className="big-numbers"), 
+                    html.P("Total (USD) ", className="total-text"),
+                    html.P(id="end-wallet-total", className="big-numbers")
+                ], 
+                className="wallet"
+                )
+        ], 
+        className="result2-container"
+        )
+    ], 
+    className="main-container-2"
     ), 
 
-    html.Div(
-        [
-            html.P("Copyright © 2022"), 
-            html.A("javlintor", href="https://github.com/javlintor", target="_blank")
-        ], 
-        className="footer"
+    html.Div([
+        html.P("Copyright © 2022"), 
+        html.A("javlintor", href="https://github.com/javlintor", target="_blank")
+    ], 
+    className="footer"
     )
 
 
