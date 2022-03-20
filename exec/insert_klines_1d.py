@@ -3,7 +3,7 @@ sys.path.append(".")
 from trading_tool.db import create_connection, select_query, SAMPLE_SYMBOLS
 
 from trading_tool.binance import get_kline
-from datetime import datetime
+from datetime import datetime, date
 from binance.client import Client
 import configparser
 
@@ -29,6 +29,7 @@ def main():
     # loop over symbols and call get_kline
 
     start_datetime = datetime(2018, 1, 1)
+    end_datetime = date.today()
 
     df_klines = []
     n_klines = symbols.shape[0]
@@ -39,6 +40,7 @@ def main():
         df = get_kline(
             client=client, 
             start_datetime=start_datetime, 
+            end_datetime=end_datetime,
             symbol=symbol, 
             interval="1d"
         )
