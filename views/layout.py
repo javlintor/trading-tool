@@ -11,8 +11,8 @@ from trading_tool.strategy import simple_strategy
 from trading_tool.client import CLIENT
 import json
 from maindash import app
-from header import make_header
-from main_container import make_main_container, make_main_container2
+from views.header import make_header
+from views.main_container import make_main_container, make_main_container2
 
 colors = {
     "background": "#12181b",
@@ -33,11 +33,14 @@ def make_layout():
         # horizontal line
         html.Hr(),
 
-        # main container
-        make_main_container(),
-
-        # main-container2
-        make_main_container2(),
+        dcc.Tabs(value='overview-tab', className="my-tab-container", parent_className="custom-tabs", children=[
+            dcc.Tab(label='Overview', value='overview-tab', className="my-tab", selected_className="my-tab-selected", children=[
+                make_main_container()
+            ]),
+            dcc.Tab(label='Analytics', value='analytics-tab', className="my-tab", selected_className="my-tab-selected", children=[
+                make_main_container2()
+            ]),
+        ]),
 
         # footer
         html.Div([

@@ -58,6 +58,27 @@ def make_main_container():
             ],
             className="flex-container-col"
             ), 
+            ],
+        className="options1-container"
+        ), 
+
+    ], 
+    className="main-container"
+    )
+
+    return main_container
+
+
+def make_main_container2():
+
+
+    min_date_allowed = date(2015, 1, 1)
+    max_date_allowed = date(2025, 1, 1)
+    initial_visible_month = date(2022, 2, 1)
+
+    main_container2 = html.Div([
+        # options2-container
+        html.Div([
 
             # time range
             html.Div([
@@ -91,24 +112,8 @@ def make_main_container():
                     value=datetime.now().replace(microsecond=0), 
                     class_name="Timeinput"
                 ),   
-            ],
+                ],
             className="time_range-container"),
-            ],
-        className="options1-container"
-        ), 
-
-    ], 
-    className="main-container"
-    )
-
-    return main_container
-
-
-def make_main_container2():
-
-    main_container2 = html.Div([
-        # options2-container
-        html.Div([
 
             # delta 
             html.Div([
@@ -220,6 +225,6 @@ def make_main_container2():
         )
     ], 
     className="main-container-2"
-    ), 
+    )
 
     return main_container2
