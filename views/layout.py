@@ -35,9 +35,10 @@ def make_layout():
 
         dcc.Tabs(value='overview-tab', className="my-tab-container", parent_className="custom-tabs", children=[
             dcc.Tab(label='Overview', value='overview-tab', className="my-tab", selected_className="my-tab-selected", children=[
-                make_main_container()
+
             ]),
             dcc.Tab(label='Analytics', value='analytics-tab', className="my-tab", selected_className="my-tab-selected", children=[
+                make_main_container(),
                 make_main_container2()
             ]),
         ]),
