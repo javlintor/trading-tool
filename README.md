@@ -51,6 +51,9 @@ Load master data from binance:
 python exec/create.py
 ```
 ```shell
+python exec/insert_assets.py
+```
+```shell
 python exec/insert_symbols.py
 ```
 ```shell
