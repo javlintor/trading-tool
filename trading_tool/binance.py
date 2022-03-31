@@ -1,6 +1,27 @@
 import pandas as pd
 from datetime import datetime
 
+def get_assets(client, limit=None):
+    """
+    Get all symbols from Binance API
+    :param client
+    :param limit
+    """
+    exchange_info = client.get_exchange_info()
+    if limit:
+        exchange_info = exchange_info[slice(limit)]
+    
+    baseAsset = []
+    quoteAsset = []
+
+    for s in exchange_info["symbols"]:
+        baseAsset.append(s["baseAsset"])
+        quoteAsset.append(s["quoteAsset"])
+
+    assets = list(set(baseAsset).union(set(quoteAsset)))
+    
+    return assets
+
 def get_symbols(client, limit=None):
     """
     Get all symbols from Binance API
@@ -12,7 +33,11 @@ def get_symbols(client, limit=None):
         exchange_info = exchange_info[slice(limit)]
     symbols = []
     for s in exchange_info["symbols"]:
-        symbols.append(s["symbol"])
+        symbols.append({
+            "symbol": s["symbol"], 
+            "baseAsset": s["baseAsset"], 
+            "quoteAsset": s["quoteAsset"]
+        })
     
     return symbols
 
@@ -59,3 +84,14 @@ def get_last_price(client, symbol):
     last_price = float(ret[-1]["price"])
 
     return last_price 
+
+def get_balances(client):
+    
+    account = client.get_account()
+    balances = account["balances"]
+    df = pd.DataFrame(balances)[["asset", "free"]]
+    df["free"] = pd.to_numeric(df["free"])
+    df = df.loc[df["free"] > 0]
+    
+    return df
+    

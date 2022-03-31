@@ -1,30 +1,24 @@
 import sys
 sys.path.append(".")
-from trading_tool.db import create_connection, select_query, SAMPLE_SYMBOLS
+from trading_tool.db import create_connection, select_query
 
 from trading_tool.binance import get_kline
 from datetime import datetime, date
-from binance.client import Client
+from trading_tool.client import CLIENT
 import configparser
 
 import pandas as pd
 
 
 def main():
-    config = configparser.ConfigParser()
-    config.read_file(open("secret.cfg"))
-    actual_api_key = config.get("BINANCE", "ACTUAL_API_KEY")
-    actual_secret_key = config.get("BINANCE", "ACTUAL_SECRET_KEY")
-
-    client = Client(actual_api_key, actual_secret_key)
 
     conn = create_connection("trading_tool.db")
-    sampel_symbols = list(map(lambda symbol: "'" + symbol + "'", SAMPLE_SYMBOLS))
-    sample_symbols = ",".join(sampel_symbols)
     symbols = pd.read_sql(
-        f"SELECT * FROM symbols WHERE symbol IN ({sample_symbols})", 
+        f"SELECT * FROM symbols", 
         conn
     )
+
+    symbols = symbols[symbols.symbol.str.contains("USD")]
 
     # loop over symbols and call get_kline
 
@@ -38,7 +32,7 @@ def main():
         row = symbols.iloc[i]
         symbol = row[1]
         df = get_kline(
-            client=client, 
+            client=CLIENT, 
             start_datetime=start_datetime, 
             end_datetime=end_datetime,
             symbol=symbol, 

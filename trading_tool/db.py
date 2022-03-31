@@ -37,16 +37,33 @@ def create_table(conn, create_table_sql):
         print(e)
 
 
-def insert_symbol(conn, symbol):
+def insert_asset(conn, row):
     """
-    Insert symbol to database
+    Insert asset to database
     :param conn:
-    :param symbol:
+    :param row:
     :return:
     """
 
-    sql = ''' INSERT INTO symbols(id, symbol)
+    sql = ''' INSERT INTO assets(id, asset)
               VALUES(?,?) '''
+    cur = conn.cursor()
+    cur.execute(sql, row)
+    conn.commit()
+
+    return cur.lastrowid
+
+
+def insert_symbol(conn, row):
+    """
+    Insert symbol to database
+    :param conn:
+    :param row:
+    :return:
+    """
+
+    sql = ''' INSERT INTO symbols(id, symbol, id_baseAsset, id_quoteAsset)
+              VALUES(?,?,?,?) '''
     cur = conn.cursor()
     cur.execute(sql, symbol)
     conn.commit()
@@ -90,7 +107,7 @@ def select_query(conn, query=None, table_name=None, where=None):
 
     return df
 
-def get_symbols(conn):
+def get_db_symbols(conn):
 
     query = """
     SELECT DISTINCT symbol FROM symbols
@@ -100,7 +117,7 @@ def get_symbols(conn):
 
     return pd.read_sql(query, conn)["symbol"].tolist()
 
-def get_klines_1d(conn, symbol=None, start_date='2022-01-01', end_date='2022-03-01'):
+def get_db_klines_1d(conn, symbol=None, start_date='2022-01-01', end_date='2022-03-01'):
 
     query = f"""
     SELECT

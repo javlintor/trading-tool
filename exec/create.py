@@ -4,16 +4,29 @@ from trading_tool.db import create_connection, create_table
 
 def main():
 
-    # create master_data.symbols table
+    # create assets table
+    create_assets_query = f"""
+    CREATE TABLE IF NOT EXISTS assets (
+        id integer PRIMARY KEY AUTOINCREMENT, 
+        asset text NOT NULL, 
+        UNIQUE (asset)
+    )
+    """
+
+    # create symbols table
     create_symbols_query = f"""
     CREATE TABLE IF NOT EXISTS symbols (
         id integer PRIMARY KEY AUTOINCREMENT, 
         symbol text NOT NULL, 
-        UNIQUE (symbol)
+        id_baseAsset integer NOT NULL,
+        id_quoteAsset integer NOT NULL,
+        UNIQUE (symbol), 
+        FOREIGN KEY (id_baseAsset) REFERENCES assets (id), 
+        FOREIGN KEY (id_quoteAsset) REFERENCES assets (id)
     )
     """
 
-    # create series.klines_1d table
+    # create klines_1d table
     create_klines_1d_query = f"""
     CREATE TABLE IF NOT EXISTS klines_1d (
         id integer PRIMARY KEY AUTOINCREMENT, 
@@ -38,6 +51,10 @@ def main():
 
     # # create tables
     if conn is not None:
+
+        # create assets table
+        create_table(conn, create_assets_query)
+
         # create symbols table
         create_table(conn, create_symbols_query)
 

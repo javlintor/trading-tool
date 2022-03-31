@@ -5,7 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 from datetime import datetime, date, timedelta, time
-from trading_tool.db import create_connection, get_symbols, get_klines_1d
+from trading_tool.db import create_connection, get_db_klines_1d
 from trading_tool.binance import get_kline, get_last_price
 from trading_tool.strategy import simple_strategy
 from trading_tool.client import CLIENT
@@ -13,6 +13,7 @@ import json
 from maindash import app
 from views.header import make_header
 from views.main_container import make_main_container, make_main_container2
+from views.profile import make_profile_description
 
 colors = {
     "background": "#12181b",
@@ -35,7 +36,7 @@ def make_layout():
 
         dcc.Tabs(value='overview-tab', className="my-tab-container", parent_className="custom-tabs", children=[
             dcc.Tab(label='Overview', value='overview-tab', className="my-tab", selected_className="my-tab-selected", children=[
-
+                #  make_profile_description(),
             ]),
             dcc.Tab(label='Analytics', value='analytics-tab', className="my-tab", selected_className="my-tab-selected", children=[
                 make_main_container(),
@@ -67,7 +68,7 @@ def make_layout():
 )
 def get_candle_1d_plot(symbol, start_date, end_date):
 
-    df = get_klines_1d(conn, symbol, start_date, end_date)
+    df = get_db_klines_1d(conn, symbol, start_date, end_date)
 
     fig = go.Figure(
         data=[
@@ -239,3 +240,4 @@ def get_candle_1m_plot(start_day, end_day, start_time, end_time, symbol, delta, 
     fig.update_layout(showlegend=False)
 
     return fig, round(end_wallet[0], 2), round(end_wallet[1], 2), round(start_wallet_1, 2), round(start_wallet_2, 2), round(start_wallet_total, 2), round(end_wallet_total, 2)
+

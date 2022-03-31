@@ -1,16 +1,28 @@
 from dash import html, dcc
 import dash_daq as daq
 import dash_mantine_components as dmc
-from trading_tool.binance import get_symbols
+from trading_tool.db import select_query, create_connection
 from datetime import datetime, date, timedelta
 from trading_tool.client import CLIENT
+import pandas as pd
 
 def make_main_container():
+
+    conn = create_connection("trading_tool.db")
 
     min_date_allowed = date(2015, 1, 1)
     max_date_allowed = date(2025, 1, 1)
     initial_visible_month = date(2022, 2, 1)
-    symbols = get_symbols(CLIENT)
+    df_symbols = pd.read_sql(
+        con=conn, 
+        sql=f"""
+        SELECT DISTINCT symbol AS symbol FROM symbols
+        INNER JOIN klines_1d 
+            ON klines_1d.id_symbol = symbols.id
+        """
+    )
+    
+    symbols = df_symbols["symbol"].to_list()
 
     main_container = html.Div([
         # candle_plot-container
