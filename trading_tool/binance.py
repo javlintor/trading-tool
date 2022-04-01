@@ -1,5 +1,7 @@
 import pandas as pd
 from datetime import datetime
+import time
+from trading_tool.client import token_usdt
 
 def get_assets(client, limit=None):
     """
@@ -95,3 +97,46 @@ def get_balances(client):
     
     return df
     
+
+def streaming_data_process(msg):
+    """
+    Function to process the received messages and add latest token pair price
+    into the token_usdt dictionary
+    :param msg: input message
+    """
+    token_usdt[msg['s']] = msg['c']
+    
+def initialize_token_usdt(twm, client):
+    
+    print(token_usdt)
+
+    twm.start()
+    
+    df_balances = get_balances(client)
+    token_pairs = list(map(lambda x: x + "USDT", df_balances["asset"].tolist()))
+
+    for tokenpair in token_pairs:
+        conn_key = twm.start_symbol_ticker_socket(symbol=tokenpair, callback=streaming_data_process)
+
+    time.sleep(5)  # To give sufficient time for all tokenpairs to establish connection
+    print("token_usdt initialized")
+    print(token_usdt)
+    
+
+def get_current_porfolio_usdt(client):
+
+    assets = list(token_usdt.keys())
+    values = list(token_usdt.values())
+    
+    df_balances = get_balances(client)
+    
+    df_token_usdt = pd.DataFrame({"asset": assets, "value": values})
+    df_token_usdt["value"] = pd.to_numeric(df_token_usdt["value"])
+    df_token_usdt["asset"] = df_token_usdt["asset"].map(lambda x: x.rstrip("USDT"))
+    
+    
+    df = df_balances.merge(df_token_usdt, on="asset")
+    df["value_usdt"] = df["free"]*df["value"]
+
+    
+    return df

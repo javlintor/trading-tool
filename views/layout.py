@@ -14,14 +14,9 @@ from maindash import app
 from views.header import make_header
 from views.main_container import make_main_container, make_main_container2
 from views.profile import make_profile_description
-
-colors = {
-    "background": "#12181b",
-    "text": "white"
-}
+from views.style import colors
 
 conn = create_connection("trading_tool.db")
-
 
 def make_layout():
 
@@ -36,7 +31,7 @@ def make_layout():
 
         dcc.Tabs(value='overview-tab', className="my-tab-container", parent_className="custom-tabs", children=[
             dcc.Tab(label='Overview', value='overview-tab', className="my-tab", selected_className="my-tab-selected", children=[
-                #  make_profile_description(),
+                 make_profile_description(),
             ]),
             dcc.Tab(label='Analytics', value='analytics-tab', className="my-tab", selected_className="my-tab-selected", children=[
                 make_main_container(),
@@ -240,4 +235,3 @@ def get_candle_1m_plot(start_day, end_day, start_time, end_time, symbol, delta, 
     fig.update_layout(showlegend=False)
 
     return fig, round(end_wallet[0], 2), round(end_wallet[1], 2), round(start_wallet_1, 2), round(start_wallet_2, 2), round(start_wallet_total, 2), round(end_wallet_total, 2)
-
