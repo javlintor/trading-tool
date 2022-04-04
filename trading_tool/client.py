@@ -3,7 +3,10 @@ from binance.client import Client
 from binance import ThreadedWebsocketManager
 
 config = configparser.ConfigParser()
-config.read_file(open("secret.cfg"))
+
+with open("secret.cfg", encoding="UTF-8") as secret_file:
+    config.read_file(secret_file)
+
 actual_api_key = config.get("BINANCE", "ACTUAL_API_KEY")
 actual_secret_key = config.get("BINANCE", "ACTUAL_SECRET_KEY")
 

@@ -1,6 +1,3 @@
-import sys
-
-sys.path.append(".")
 from trading_tool.db import create_connection, select_query, insert_asset
 from trading_tool.binance import get_assets
 from trading_tool.client import CLIENT

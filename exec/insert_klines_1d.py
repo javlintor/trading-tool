@@ -1,20 +1,16 @@
-import sys
-
-sys.path.append(".")
-from trading_tool.db import create_connection, select_query
-
-from trading_tool.binance import get_kline
 from datetime import datetime, date
-from trading_tool.client import CLIENT
-import configparser
 
 import pandas as pd
+
+from trading_tool.db import create_connection
+from trading_tool.binance import get_kline
+from trading_tool.client import CLIENT
 
 
 def main():
 
     conn = create_connection("trading_tool.db")
-    symbols = pd.read_sql(f"SELECT * FROM symbols", conn)
+    symbols = pd.read_sql("SELECT * FROM symbols", conn)
 
     symbols = symbols[symbols.symbol.str.contains("USD")]
 
@@ -26,7 +22,9 @@ def main():
     df_klines = []
     n_klines = symbols.shape[0]
     for i in range(n_klines):
-        print("--- Progress %04.2f ----" % (100 * i / n_klines))
+
+        prct = 100 * i / n_klines
+        print(f"--- Progress {prct:.2f} ----")
         row = symbols.iloc[i]
         symbol = row[1]
         df = get_kline(

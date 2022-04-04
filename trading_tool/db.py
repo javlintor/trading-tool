@@ -1,13 +1,10 @@
 import sqlite3
-import pandas as pd
-
 from sqlite3 import Error
-
-SAMPLE_SYMBOLS = ["BTCUSDT", "ETHUSDT", "LUNAUSDT", "GALAUSDT", "FTMUSDT"]
+import pandas as pd
 
 
 def create_connection(db_file):
-    """ create a database connection to a SQLite database """
+    """create a database connection to a SQLite database"""
     conn = None
     try:
         conn = sqlite3.connect(db_file, check_same_thread=False)
@@ -16,6 +13,9 @@ def create_connection(db_file):
         print(e)
 
     return conn
+
+
+CONN = create_connection("trading_tool.db")
 
 
 def create_table(conn, create_table_sql):
@@ -59,7 +59,7 @@ def insert_symbol(conn, row):
     sql = """ INSERT INTO symbols(id, symbol, id_baseAsset, id_quoteAsset)
               VALUES(?,?,?,?) """
     cur = conn.cursor()
-    cur.execute(sql, symbol)
+    cur.execute(sql, row)
     conn.commit()
 
     return cur.lastrowid

@@ -1,13 +1,10 @@
-import sys
-
-sys.path.append(".")
 from trading_tool.db import create_connection, create_table
 
 
 def main():
 
     # create assets table
-    create_assets_query = f"""
+    create_assets_query = """
     CREATE TABLE IF NOT EXISTS assets (
         id integer PRIMARY KEY AUTOINCREMENT, 
         asset text NOT NULL, 
@@ -16,7 +13,7 @@ def main():
     """
 
     # create symbols table
-    create_symbols_query = f"""
+    create_symbols_query = """
     CREATE TABLE IF NOT EXISTS symbols (
         id integer PRIMARY KEY AUTOINCREMENT, 
         symbol text NOT NULL, 
@@ -29,7 +26,7 @@ def main():
     """
 
     # create klines_1d table
-    create_klines_1d_query = f"""
+    create_klines_1d_query = """
     CREATE TABLE IF NOT EXISTS klines_1d (
         id integer PRIMARY KEY AUTOINCREMENT, 
         id_symbol integer NOT NULL, 

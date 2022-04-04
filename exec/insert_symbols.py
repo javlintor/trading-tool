@@ -1,10 +1,9 @@
-import sys
+import pandas as pd
 
-sys.path.append(".")
-from trading_tool.db import create_connection, select_query, insert_symbol
+from trading_tool.db import create_connection, select_query
 from trading_tool.binance import get_symbols
 from trading_tool.client import CLIENT
-import pandas as pd
+
 
 
 def main():
@@ -14,7 +13,7 @@ def main():
     bi_symbols = get_symbols(CLIENT)
     db_symbols = select_query(conn, table_name="symbols")["symbol"].values.tolist()
 
-    symbols_to_load = list(set([s["symbol"] for s in bi_symbols]) - set(db_symbols))
+    symbols_to_load = list(set(s["symbol"] for s in bi_symbols) - set(db_symbols))
 
     df_assets = select_query(conn, table_name="assets")
     df_symbols = pd.DataFrame(bi_symbols)

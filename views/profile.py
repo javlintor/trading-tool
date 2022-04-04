@@ -2,7 +2,7 @@ from dash import html, dcc, dash_table
 import plotly.express as px
 from trading_tool.binance import get_portfolio
 from trading_tool.client import TEST_CLIENT
-from views.style import colors, gray5
+from views.style import colors, GRAY5
 
 
 def make_profile_description():
@@ -23,7 +23,7 @@ def make_profile_description():
     fig.update_layout(
         {
             "plot_bgcolor": colors["background"],
-            "paper_bgcolor": gray5,
+            "paper_bgcolor": GRAY5,
             "font": {"color": colors["text"]},
         }
     )
