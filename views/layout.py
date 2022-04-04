@@ -1,20 +1,16 @@
+from datetime import datetime, date, timedelta
 from dash import html, dcc, Input, Output
-import dash_daq as daq
-import dash_mantine_components as dmc
-import plotly.express as px
 import plotly.graph_objects as go
-import pandas as pd
-from datetime import datetime, date, timedelta, time
 from trading_tool.db import create_connection, get_db_klines_1d
-from trading_tool.binance import get_kline, get_last_price
+from trading_tool.binance import get_kline
 from trading_tool.strategy import simple_strategy
 from trading_tool.client import CLIENT
-import json
 from maindash import app
 from views.header import make_header
 from views.main_container import make_main_container, make_main_container2
 from views.profile import make_profile_description
 from views.style import colors
+
 
 conn = create_connection("trading_tool.db")
 
@@ -194,9 +190,7 @@ def get_candle_1m_plot(
     start_wallet_2 = first * start_wallet_ratio_2
 
     wallet = (start_wallet_1, start_wallet_2)
-    buy, sell, end_wallet = simple_strategy(
-        df=df, alpha=alpha, delta=delta, wallet=wallet, reverse=reverse
-    )
+    buy, sell, end_wallet = simple_strategy(df=df, alpha=alpha, delta=delta, wallet=wallet, reverse=reverse)
 
     start_wallet_total = wallet[0] * first + wallet[1]
     end_wallet_total = end_wallet[0] * last + end_wallet[1]

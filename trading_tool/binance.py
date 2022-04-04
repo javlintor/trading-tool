@@ -1,8 +1,9 @@
-import pandas as pd
 from datetime import datetime
+import pandas as pd
 import time
-from trading_tool.client import token_usdt
 import re
+
+from trading_tool.client import token_usdt
 
 
 def get_assets(client, limit=None):
@@ -131,9 +132,7 @@ def get_balances(client):
 def get_prices(client):
 
     all_tickers = client.get_all_tickers()
-    symbol_price_pairs = [
-        symbol_price for symbol_price in all_tickers if "USDT" in symbol_price["symbol"]
-    ]
+    symbol_price_pairs = [symbol_price for symbol_price in all_tickers if "USDT" in symbol_price["symbol"]]
     df = pd.DataFrame(symbol_price_pairs)
     df["price"] = pd.to_numeric(df["price"])
     df["asset"] = df["symbol"].map(lambda x: re.sub("USDT", "", x))
@@ -175,9 +174,7 @@ def initialize_token_usdt(twm, client):
     token_pairs = list(map(lambda x: x + "USDT", df_balances["asset"].tolist()))
 
     for tokenpair in token_pairs:
-        conn_key = twm.start_symbol_ticker_socket(
-            symbol=tokenpair, callback=streaming_data_process
-        )
+        conn_key = twm.start_symbol_ticker_socket(symbol=tokenpair, callback=streaming_data_process)
 
     time.sleep(5)  # To give sufficient time for all tokenpairs to establish connection
     print("token_usdt initialized")
