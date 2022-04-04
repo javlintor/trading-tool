@@ -1,6 +1,8 @@
 import sys
+
 sys.path.append(".")
 from trading_tool.db import create_connection, create_table
+
 
 def main():
 
@@ -65,5 +67,6 @@ def main():
 
     print("Tables created.")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

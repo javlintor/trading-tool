@@ -3,13 +3,8 @@ import pandas as pd
 
 from sqlite3 import Error
 
-SAMPLE_SYMBOLS = [
-    "BTCUSDT", 
-    "ETHUSDT",
-    "LUNAUSDT", 
-    "GALAUSDT", 
-    "FTMUSDT"
-]
+SAMPLE_SYMBOLS = ["BTCUSDT", "ETHUSDT", "LUNAUSDT", "GALAUSDT", "FTMUSDT"]
+
 
 def create_connection(db_file):
     """ create a database connection to a SQLite database """
@@ -19,13 +14,12 @@ def create_connection(db_file):
         return conn
     except Error as e:
         print(e)
-    
+
     return conn
 
 
-
 def create_table(conn, create_table_sql):
-    """ create a table from the create_table_sql statement
+    """create a table from the create_table_sql statement
     :param conn: Connection object
     :param create_table_sql: a CREATE TABLE statement
     :return:
@@ -45,8 +39,8 @@ def insert_asset(conn, row):
     :return:
     """
 
-    sql = ''' INSERT INTO assets(id, asset)
-              VALUES(?,?) '''
+    sql = """ INSERT INTO assets(id, asset)
+              VALUES(?,?) """
     cur = conn.cursor()
     cur.execute(sql, row)
     conn.commit()
@@ -62,8 +56,8 @@ def insert_symbol(conn, row):
     :return:
     """
 
-    sql = ''' INSERT INTO symbols(id, symbol, id_baseAsset, id_quoteAsset)
-              VALUES(?,?,?,?) '''
+    sql = """ INSERT INTO symbols(id, symbol, id_baseAsset, id_quoteAsset)
+              VALUES(?,?,?,?) """
     cur = conn.cursor()
     cur.execute(sql, symbol)
     conn.commit()
@@ -81,10 +75,10 @@ def select_query(conn, query=None, table_name=None, where=None):
     """
 
     cur = conn.cursor()
-    
+
     if query:
 
-        if  table_name or where:
+        if table_name or where:
             print("If query is specified, other fileds must be left default")
             return None
 
@@ -102,10 +96,11 @@ def select_query(conn, query=None, table_name=None, where=None):
         col_names = list(map(lambda col: col[1], cols))
         df = pd.DataFrame(rows, columns=col_names)
         return df
-    
+
     df = pd.DataFrame(rows)
 
     return df
+
 
 def get_db_symbols(conn):
 
@@ -117,7 +112,8 @@ def get_db_symbols(conn):
 
     return pd.read_sql(query, conn)["symbol"].tolist()
 
-def get_db_klines_1d(conn, symbol=None, start_date='2022-01-01', end_date='2022-03-01'):
+
+def get_db_klines_1d(conn, symbol=None, start_date="2022-01-01", end_date="2022-03-01"):
 
     query = f"""
     SELECT
@@ -136,4 +132,3 @@ def get_db_klines_1d(conn, symbol=None, start_date='2022-01-01', end_date='2022-
     df = pd.read_sql(query, conn)
 
     return df
-
