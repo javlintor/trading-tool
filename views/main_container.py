@@ -329,7 +329,7 @@ def get_candle_1m_plot(
     end_time = datetime.strptime(end_time, "%Y-%m-%dT%H:%M:%S").time()
 
     start_datetime = datetime.combine(start_day, start_time)
-    start_datetime = start_datetime - timedelta(minutes=50)
+    pre_start_datetime = start_datetime - timedelta(minutes=50)
     end_datetime = datetime.combine(end_day, end_time)
 
     time_diff = end_datetime - start_datetime
@@ -339,27 +339,11 @@ def get_candle_1m_plot(
 
     df = get_kline(
         client=CLIENT,
-        start_datetime=start_datetime,
+        start_datetime=pre_start_datetime,
         end_datetime=end_datetime,
         symbol=symbol,
         interval="1m",
     )
-
-    first = df.iloc[0]["close"]
-    last = df.iloc[-1]["close"]
-    start_wallet_1 = start_wallet_ratio_1
-    start_wallet_2 = first * start_wallet_ratio_2
-
-    wallet = (start_wallet_1, start_wallet_2)
-    buy, sell, end_wallet = simple_strategy(
-        df=df, alpha=alpha, delta=delta, wallet=wallet, reverse=reverse
-    )
-
-    start_wallet_total = wallet[0] * first + wallet[1]
-    end_wallet_total = end_wallet[0] * last + end_wallet[1]
-
-    break_points = buy + sell + [df["dateTime"].iloc[-1]]
-    break_points.sort()
 
     df["avg_10"] = df["close"].rolling(10).mean()
     df["avg_50"] = df["close"].rolling(50).mean()
@@ -379,6 +363,22 @@ def get_candle_1m_plot(
             )
         ]
     )
+
+    first = df.iloc[0]["close"]
+    last = df.iloc[-1]["close"]
+    start_wallet_1 = start_wallet_ratio_1
+    start_wallet_2 = first * start_wallet_ratio_2
+
+    wallet = (start_wallet_1, start_wallet_2)
+    buy, sell, end_wallet = simple_strategy(
+        df=df, alpha=alpha, delta=delta, wallet=wallet, reverse=reverse
+    )
+
+    start_wallet_total = wallet[0] * first + wallet[1]
+    end_wallet_total = end_wallet[0] * last + end_wallet[1]
+
+    break_points = buy + sell + [df["dateTime"].iloc[-1]]
+    break_points.sort()
 
     time_aux = df["dateTime"].iloc[0]
     for break_point in break_points:
