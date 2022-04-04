@@ -11,6 +11,22 @@ conn = create_connection("trading_tool.db")
 
 def make_layout():
 
+    overview_tab = dcc.Tab(
+        label="Overview",
+        value="overview-tab",
+        className="my-tab",
+        selected_className="my-tab-selected",
+        children=[make_profile_description()],
+    )
+
+    backtesting_tab = dcc.Tab(
+        label="Backtesting",
+        value="backtesting-tab",
+        className="my-tab",
+        selected_className="my-tab-selected",
+        children=[make_main_container(), make_main_container2()],
+    )
+
     # body
     layout = html.Div(
         [
@@ -22,30 +38,12 @@ def make_layout():
             dcc.Tabs(
                 value="overview-tab",
                 className="my-tab-container",
-                parent_className="custom-tabs",
-                children=[
-                    dcc.Tab(
-                        label="Overview",
-                        value="overview-tab",
-                        className="my-tab",
-                        selected_className="my-tab-selected",
-                        children=[
-                            make_profile_description(),
-                        ],
-                    ),
-                    dcc.Tab(
-                        label="Backtesting",
-                        value="backtesting-tab",
-                        className="my-tab",
-                        selected_className="my-tab-selected",
-                        children=[make_main_container(), make_main_container2()],
-                    ),
-                ],
+                children=[overview_tab, backtesting_tab],
             ),
             # footer
             make_footer(),
         ],
-        className="body",
+        id="layout",
     )
 
     return layout

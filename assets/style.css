@@ -1,44 +1,25 @@
-*{
-    box-sizing: border-box;
-    margin: 0;
-    font-size: var(--global-font-size);
-    word-spacing: 3px;
-}
+@import "basics.css";
+@import "header.css";
 
-a {
-    text-decoration: none;
-    color: var(--dark-yellow);
-    font-family: var(--font-text);
-    padding-left: 10px;
-}
-
-a:hover {
-    color: var(--light-yellow);
-}
-
-.body {
+#layout {
     background-color: var(--colors-background);
     color: var(--colors-text);
-    padding: 10px 50px;
+    padding: 10px 200px;
     font-family: var(--font-text);
 }
 
-.header {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding: 50px 0;
+.my-tab-container{
+    width: 50%;
 }
 
-.title {
-    font-size: 3rem;
-    color: var(--dark-yellow);
-    padding: 10px 20px 0 0 ;
+.my-tab {
+    color: var(--gray2) !important;
+    background-color: var(--colors-background) !important;
+    font-size: 0.5rem;
 }
 
-.description {
-    font-size: 1.3rem;
-    color: var(--dark-yellow);
+.my-tab-selected {
+    color: white !important;
 }
 
 .main-container {
@@ -278,20 +259,6 @@ a:hover {
 .Timeinput > *{
     width: 100px;
     color: white;
-}
-
-.my-tab-container{
-    width: 50%;
-}
-
-.my-tab {
-    color: var(--gray2) !important;
-    background-color: var(--colors-background) !important;
-    font-size: 0.5rem;
-}
-
-.my-tab-selected {
-    color: white !important;
 }
 
 .profile-container {

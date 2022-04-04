@@ -1,0 +1,17 @@
+#header {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 50px 0;
+}
+
+.title {
+    font-size: 3rem;
+    color: var(--dark-yellow);
+    padding: 10px 20px 0 0 ;
+}
+
+.subtitle {
+    font-size: 1.3rem;
+    color: var(--dark-yellow);
+}

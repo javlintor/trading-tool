@@ -9,15 +9,13 @@ from trading_tool.client import CLIENT
 from trading_tool.db import get_db_klines_1d, CONN
 from trading_tool.binance import get_kline
 from trading_tool.strategy import simple_strategy
+from trading_tool.constants import MIN_DATE_ALLOWED, MAX_DATE_ALLOWED, INITIAL_VISIBLE_MONTH
 from maindash import app
 from views.style import colors
 
 
 def make_main_container():
 
-    min_date_allowed = date(2015, 1, 1)
-    max_date_allowed = date(2025, 1, 1)
-    initial_visible_month = date(2022, 2, 1)
     df_symbols = pd.read_sql(
         con=CONN,
         sql="""
@@ -55,9 +53,9 @@ def make_main_container():
                             html.Label("Select a date range:", form="date_range"),
                             dcc.DatePickerRange(
                                 id="date_range",
-                                min_date_allowed=min_date_allowed,
-                                max_date_allowed=max_date_allowed,
-                                initial_visible_month=initial_visible_month,
+                                min_date_allowed=MIN_DATE_ALLOWED,
+                                max_date_allowed=MAX_DATE_ALLOWED,
+                                initial_visible_month=INITIAL_VISIBLE_MONTH,
                                 start_date=date.today() - timedelta(365),
                                 end_date=date.today(),
                             ),
@@ -76,9 +74,7 @@ def make_main_container():
 
 def make_main_container2():
 
-    min_date_allowed = date(2015, 1, 1)
-    max_date_allowed = date(2025, 1, 1)
-    initial_visible_month = date(2022, 2, 1)
+
 
     main_container2 = html.Div(
         [
@@ -94,9 +90,9 @@ def make_main_container2():
                             ),
                             dcc.DatePickerSingle(
                                 id="start_day",
-                                min_date_allowed=min_date_allowed,
-                                max_date_allowed=max_date_allowed,
-                                initial_visible_month=initial_visible_month,
+                                min_date_allowed=MIN_DATE_ALLOWED,
+                                max_date_allowed=MAX_DATE_ALLOWED,
+                                initial_visible_month=INITIAL_VISIBLE_MONTH,
                                 date=date.today(),
                             ),
                             dmc.TimeInput(
@@ -107,9 +103,9 @@ def make_main_container2():
                             ),
                             dcc.DatePickerSingle(
                                 id="end_day",
-                                min_date_allowed=min_date_allowed,
-                                max_date_allowed=max_date_allowed,
-                                initial_visible_month=initial_visible_month,
+                                min_date_allowed=MIN_DATE_ALLOWED,
+                                max_date_allowed=MAX_DATE_ALLOWED,
+                                initial_visible_month=INITIAL_VISIBLE_MONTH,
                                 date=date.today(),
                             ),
                             dmc.TimeInput(
