@@ -1,7 +1,6 @@
 from datetime import datetime, date, timedelta
 import pandas as pd
 import dash_daq as daq
-import dash_mantine_components as dmc
 from dash import html, dcc, Input, Output
 import plotly.graph_objects as go
 
@@ -12,9 +11,10 @@ from trading_tool.strategy import simple_strategy
 from trading_tool.constants import MIN_DATE_ALLOWED, MAX_DATE_ALLOWED, INITIAL_VISIBLE_MONTH
 from maindash import app
 from views.style import colors
+from views.components import make_vertical_group, make_time_range, make_wallet
 
 
-def make_main_container():
+def make_backtesting_container_1():
 
     df_symbols = pd.read_sql(
         con=CONN,
@@ -27,95 +27,61 @@ def make_main_container():
 
     symbols = df_symbols["symbol"].to_list()
 
-    main_container = html.Div(
-        [
-            # candle_plot-container
-            html.Div(
-                [
-                    dcc.Graph(id="candle_1d", responsive=True, className="candle_plot"),
-                ],
-                className="candle_plot-container",
-            ),
-            # options1-container
-            html.Div(
-                [
-                    # symbols container
-                    html.Div(
-                        [
-                            html.Label("Select a symbol:", form="symbols"),
-                            dcc.Dropdown(value="BTCUSDT", options=symbols, id="symbols"),
-                        ],
-                        className="symbols-container",
-                    ),
-                    # date_range
-                    html.Div(
-                        [
-                            html.Label("Select a date range:", form="date_range"),
-                            dcc.DatePickerRange(
-                                id="date_range",
-                                min_date_allowed=MIN_DATE_ALLOWED,
-                                max_date_allowed=MAX_DATE_ALLOWED,
-                                initial_visible_month=INITIAL_VISIBLE_MONTH,
-                                start_date=date.today() - timedelta(365),
-                                end_date=date.today(),
-                            ),
-                        ],
-                        className="flex-container-col",
-                    ),
-                ],
-                className="options1-container",
-            ),
-        ],
-        className="main-container",
+    symbols_dropdown = dcc.Dropdown(value="BTCUSDT", options=symbols, id="symbols")
+    date_picker_range = dcc.DatePickerRange(
+        id="date-range",
+        min_date_allowed=MIN_DATE_ALLOWED,
+        max_date_allowed=MAX_DATE_ALLOWED,
+        initial_visible_month=INITIAL_VISIBLE_MONTH,
+        start_date=date.today() - timedelta(365),
+        end_date=date.today(),
     )
 
-    return main_container
+    backtesting_container_1 = html.Div(
+        id="backtesting-container-1",
+        className="grid-container cool-container",
+        children=[
+            # summary-candle-plot
+            dcc.Graph(
+                id="summary-candle-plot",
+                responsive=True,
+                className="height-100 candle-plot",
+            ),
+            # global-options-container
+            html.Div(
+                id="global-options-container",
+                className="flex-container",
+                children=[
+                    # symbols
+                    make_vertical_group("Select a symbol", symbols_dropdown),
+                    # date_range
+                    make_vertical_group("Select a date range", date_picker_range),
+                ],
+            ),
+        ],
+    )
+
+    return backtesting_container_1
 
 
-def make_main_container2():
+def make_backtesting_container_2():
 
+    start_wallet = make_wallet(wallet_title="Start Wallet", id_suffix="-start", id="start-wallet", class_name="wallet cool-container")
+    end_wallet = make_wallet(wallet_title="End Wallet", id_suffix="-end", id="end-wallet", class_name="wallet cool-container")
 
-
-    main_container2 = html.Div(
-        [
+    backtesting_container_2 = html.Div(
+        id="backtesting-container-2",
+        className="grid-container cool-container",
+        children=[
             # options2-container
             html.Div(
-                [
+                className="options2-container",
+                children=[
                     # time range
-                    html.Div(
-                        [
-                            html.P(
-                                "Choose time interval for analysis:",
-                                id="time_range-label",
-                            ),
-                            dcc.DatePickerSingle(
-                                id="start_day",
-                                min_date_allowed=MIN_DATE_ALLOWED,
-                                max_date_allowed=MAX_DATE_ALLOWED,
-                                initial_visible_month=INITIAL_VISIBLE_MONTH,
-                                date=date.today(),
-                            ),
-                            dmc.TimeInput(
-                                label="Start time:",
-                                id="start_time",
-                                value=datetime.combine(date.today(), datetime.min.time()),
-                                class_name="Timeinput",
-                            ),
-                            dcc.DatePickerSingle(
-                                id="end_day",
-                                min_date_allowed=MIN_DATE_ALLOWED,
-                                max_date_allowed=MAX_DATE_ALLOWED,
-                                initial_visible_month=INITIAL_VISIBLE_MONTH,
-                                date=date.today(),
-                            ),
-                            dmc.TimeInput(
-                                label="End time:",
-                                id="end_time",
-                                value=datetime.now().replace(microsecond=0),
-                                class_name="Timeinput",
-                            ),
-                        ],
-                        className="time_range-container",
+                    make_time_range(
+                        max_date_allowed=MAX_DATE_ALLOWED,
+                        min_date_allowed=MIN_DATE_ALLOWED,
+                        initial_visible_month=INITIAL_VISIBLE_MONTH,
                     ),
                     # delta
                     html.Div(
@@ -174,7 +140,6 @@ def make_main_container2():
                         className="flex-container",
                     ),
                 ],
-                className="options2-container",
             ),
             # candle_1m
             html.Div(
@@ -183,56 +148,23 @@ def make_main_container2():
                 ],
                 className="candle_1m-container",
             ),
-            # result1-container
-            html.Div(
-                [
-                    html.Div(
-                        [
-                            html.P("Start Wallet", className="title-wallet"),
-                            html.P("A Coin", id="start-wallet-1-title"),
-                            html.P("B Coin", id="start-wallet-2-title"),
-                            html.P(id="start-wallet-1", className="big-numbers"),
-                            html.P(id="start-wallet-2", className="big-numbers"),
-                            html.P("Total (USD) ", className="total-text"),
-                            html.P(id="start-wallet-total", className="big-numbers"),
-                        ],
-                        className="wallet",
-                    )
-                ],
-                className="result1-container",
-            ),
-            # result2-container
-            html.Div(
-                [
-                    html.Div(
-                        [
-                            html.P("End Wallet", className="title-wallet"),
-                            html.P("A Coin", id="end-wallet-1-title"),
-                            html.P("B Coin", id="end-wallet-2-title"),
-                            html.P(id="end-wallet-1", className="big-numbers"),
-                            html.P(id="end-wallet-2", className="big-numbers"),
-                            html.P("Total (USD) ", className="total-text"),
-                            html.P(id="end-wallet-total", className="big-numbers"),
-                        ],
-                        className="wallet",
-                    )
-                ],
-                className="result2-container",
-            ),
+            # Start Wallet
+            start_wallet,
+            # End Wallet
+            end_wallet
         ],
-        className="main-container-2",
     )
 
-    return main_container2
+    return backtesting_container_2
 
 
 @app.callback(
-    Output("candle_1d", "figure"),
+    Output("summary-candle-plot", "figure"),
     Input("symbols", "value"),
-    Input("date_range", "start_date"),
-    Input("date_range", "end_date"),
+    Input("date-range", "start_date"),
+    Input("date-range", "end_date"),
 )
-def get_candle_1d_plot(symbol, start_date, end_date):
+def get_summary_candle_plot(symbol, start_date, end_date):
 
     df = get_db_klines_1d(CONN, symbol, start_date, end_date)
 
@@ -272,9 +204,39 @@ def get_candle_1d_plot(symbol, start_date, end_date):
 
 
 @app.callback(
+    Output("a-coin-name-start", "children"),
+    Output("a-coin-name-end", "children"),
+    Output("b-coin-name-start", "children"),
+    Output("b-coin-name-end", "children"),
+    Input("symbols", "value"),
+)
+def get_coins(symbol):
+
+    df_coins = pd.read_sql(
+        con=CONN,
+        sql=f"""
+        SELECT
+            a_coin.asset AS a_coin,
+            b_coin.asset AS b_coin
+        FROM symbols AS symbols
+        INNER JOIN assets AS a_coin
+            ON symbols.id_baseAsset = a_coin.id
+        INNER JOIN assets AS b_coin 
+            ON symbols.id_quoteAsset = b_coin.id
+        WHERE symbols.symbol = '{symbol}'
+        """,
+    )
+
+    a_coin = df_coins["a_coin"].iloc[0]
+    b_coin = df_coins["b_coin"].iloc[0]
+
+    return a_coin, a_coin, b_coin, b_coin
+
+
+@app.callback(
     Output("start_day", "date"),
     Output("end_day", "date"),
-    Input("candle_1d", "clickData"),
+    Input("summary-candle-plot", "clickData"),
 )
 def get_clicked_day(click_data):
 
@@ -289,12 +251,12 @@ def get_clicked_day(click_data):
 
 @app.callback(
     Output("candle_1m", "figure"),
-    Output("end-wallet-1", "children"),
-    Output("end-wallet-2", "children"),
-    Output("start-wallet-1", "children"),
-    Output("start-wallet-2", "children"),
-    Output("start-wallet-total", "children"),
-    Output("end-wallet-total", "children"),
+    Output("a-coin-value-end", "children"),
+    Output("b-coin-value-end", "children"),
+    Output("a-coin-value-start", "children"),
+    Output("b-coin-value-start", "children"),
+    Output("total-value-start", "children"),
+    Output("total-value-end", "children"),
     Input("start_day", "date"),
     Input("end_day", "date"),
     Input("start_time", "value"),

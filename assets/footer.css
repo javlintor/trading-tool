@@ -1,0 +1,15 @@
+
+#github-link {
+    text-decoration: none;
+    color: var(--dark-yellow);
+    font-family: var(--font-text);
+    padding-left: 10px;
+}
+
+#github-link:hover {
+    color: var(--light-yellow);
+}
+
+.footer {
+    padding: 200px;
+}

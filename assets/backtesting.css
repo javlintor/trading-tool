@@ -1,0 +1,132 @@
+#date-range * {
+    font-size: 1rem;
+}
+
+#backtesting-container-1 {
+    grid-template-columns: 1fr;
+    grid-template-rows: 150px 600px;
+    grid-template-areas: 
+        "options1"
+        "figure";
+}
+
+#summary-candle-plot {
+    grid-area: figure;
+}
+
+#global-options-container {
+    justify-content: space-evenly;
+    padding-left: 30px;
+    grid-area: options1;
+    background-color: var(--colors-background);
+    border-radius: 20px;
+    gap: 20px;
+}
+
+#backtesting-container-2 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 600px 600px 1fr;
+    grid-template-areas: 
+        "options2 options2"
+        "figure figure"
+        "start-wallet end-wallet";
+}
+
+.candle_1m-container {
+    grid-area: figure;
+    padding: 4px;
+    border-radius: 20px;
+    background-color: var(--colors-background);
+}
+
+.candle_1m {
+    height: 100%;
+}
+
+.candle_plot {
+    height: 100%;
+}
+
+.options2-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    padding-left: 30px;
+    grid-area: options2;
+    background-color: var(--colors-background);
+    border-radius: 20px;
+    gap: 20px;
+}
+
+#symbols {
+    width: 200px;
+}
+
+
+.num-input-container {
+    display: flex;
+    justify-content: flex-start;
+    gap: 20px;
+}
+
+.time-range-grid {
+    display: grid;
+    grid-template-columns: 200px 200px;
+    grid-template-rows: 50px 50px;
+    grid-template-areas: 
+        "date1 date2"
+        "time1 time2";
+    gap: 20px;
+    justify-items: center;
+    align-items: center;
+}
+
+#start_day {
+    grid-area: date1;
+}
+
+#end_day {
+    grid-area: date2;
+}
+
+#start_time {
+    grid-area: time1;
+}
+
+#end_time {
+    grid-area: time2;
+}
+
+.wallet-grid {
+    display: grid;
+    grid-template-columns: 100px 100px;
+    grid-template-rows: 100px 100px;
+    grid-template-areas: 
+        "a-coin b-coin"
+        "total total";
+    gap: 20px;
+    justify-items: center;
+    align-items: center;
+}
+
+#start-wallet {
+    grid-area: start-wallet;
+}
+
+#end-wallet {
+    grid-area: end-wallet;
+}
+
+.wallet {
+    background-color: var(--colors-background);
+}
+
+.a-coin{
+    grid-area: a-coin
+}
+.b-coin{
+    grid-area: b-coin
+}
+.total{
+    grid-area: total
+}
