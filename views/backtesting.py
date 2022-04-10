@@ -37,27 +37,41 @@ def make_backtesting_container_1():
         end_date=date.today(),
     )
 
+    summary_candle_plot = dcc.Graph(
+        id="summary-candle-plot",
+        responsive=True,
+        className="height-100 candle-plot",
+    )
+
+    symbols = make_vertical_group(
+        title_text="Select a symbol",
+        element=symbols_dropdown,
+        class_title="medium-font",
+    )
+
+    date_range = make_vertical_group(
+        title_text="Select a date range",
+        element=date_picker_range,
+        class_title="medium-font",
+    )
+
     backtesting_container_1 = html.Div(
         id="backtesting-container-1",
         className="grid-container cool-container",
         children=[
-            # summary-candle-plot
-            dcc.Graph(
-                id="summary-candle-plot",
-                responsive=True,
-                className="height-100 candle-plot",
-            ),
             # global-options-container
             html.Div(
                 id="global-options-container",
                 className="flex-container",
                 children=[
                     # symbols
-                    make_vertical_group("Select a symbol", symbols_dropdown),
+                    symbols,
                     # date_range
-                    make_vertical_group("Select a date range", date_picker_range),
+                    date_range,
                 ],
             ),
+            # summary-candle-plot
+            summary_candle_plot,
         ],
     )
 
@@ -66,8 +80,24 @@ def make_backtesting_container_1():
 
 def make_backtesting_container_2():
 
-    start_wallet = make_wallet(wallet_title="Start Wallet", id_suffix="-start", id="start-wallet", class_name="wallet cool-container")
-    end_wallet = make_wallet(wallet_title="End Wallet", id_suffix="-end", id="end-wallet", class_name="wallet cool-container")
+    time_range = make_time_range(
+        max_date_allowed=MAX_DATE_ALLOWED,
+        min_date_allowed=MIN_DATE_ALLOWED,
+        initial_visible_month=INITIAL_VISIBLE_MONTH,
+    )
+
+    start_wallet = make_wallet(
+        wallet_title="Start Wallet",
+        id_suffix="-start",
+        id_component="start-wallet",
+        class_name="wallet cool-container",
+    )
+    end_wallet = make_wallet(
+        wallet_title="End Wallet",
+        id_suffix="-end",
+        id_component="end-wallet",
+        class_name="wallet cool-container",
+    )
 
     backtesting_container_2 = html.Div(
         id="backtesting-container-2",
@@ -78,11 +108,7 @@ def make_backtesting_container_2():
                 className="options2-container",
                 children=[
                     # time range
-                    make_time_range(
-                        max_date_allowed=MAX_DATE_ALLOWED,
-                        min_date_allowed=MIN_DATE_ALLOWED,
-                        initial_visible_month=INITIAL_VISIBLE_MONTH,
-                    ),
+                    time_range,
                     # delta
                     html.Div(
                         [
@@ -151,7 +177,7 @@ def make_backtesting_container_2():
             # Start Wallet
             start_wallet,
             # End Wallet
-            end_wallet
+            end_wallet,
         ],
     )
 

@@ -3,40 +3,11 @@
 @import "footer.css";
 @import "tabs.css";
 @import "backtesting.css";
+@import "profile.css";
 
 .Timeinput > *{
     width: 100px;
     color: white;
-}
-
-.profile-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto;
-    grid-template-areas: 
-        "pie_chart table_description";
-    gap: 0px;
-    justify-content: space-evenly;
-    background-color: var(--gray5);
-    border-radius: 20px;
-    padding: 10px;
-    margin-top: 70px;
-}
-
-.pie-chart-container {
-    grid-area: pie_chart;
-    border-radius: 20px;
-}
-
-.table-info-container {
-    grid-area: table_description;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: stretch;
-    padding: 10px;
-    color: white;
-    margin-right: 50px;
 }
 
 @media (max-width: 1200px) {

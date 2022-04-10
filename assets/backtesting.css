@@ -100,12 +100,12 @@
 .wallet-grid {
     display: grid;
     grid-template-columns: 100px 100px;
-    grid-template-rows: 100px 100px;
+    grid-template-rows: 50px 50px;
     grid-template-areas: 
         "a-coin b-coin"
-        "total total";
+        "total -";
     gap: 20px;
-    justify-items: center;
+    justify-items: start;
     align-items: center;
 }
 

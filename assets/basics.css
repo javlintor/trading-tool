@@ -1,7 +1,5 @@
 *{
     margin: 0;
-    font-size: var(--global-font-size);
-    font-family: var(--font-text);
     word-spacing: 3px;
 }
 
@@ -9,6 +7,8 @@
     color: var(--colors-text);
     background-color: var(--colors-background);
     padding: 10px 200px;
+    font-size: var(--global-font-size);
+    font-family: var(--font-text);
 }
 
 .my-tab {
@@ -52,6 +52,16 @@
 .big-numbers {
     font-size: 2rem;
     color: var(--dark-yellow);
+}
+
+.big-font {
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.medium-font {
+    font-size: 1.5rem;
+    font-weight: 400;
 }
 
 .space{

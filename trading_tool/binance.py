@@ -150,6 +150,7 @@ def get_portfolio(client):
 
     df = df_balances.merge(df_prices, on="asset")
     df["price_usdt"] = df["free"] * df["price"]
+    df["price_usdt"] = df["price_usdt"].round(1)
 
     df = df[["asset", "free", "price_usdt"]]
 
