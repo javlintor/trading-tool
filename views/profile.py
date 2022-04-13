@@ -41,9 +41,15 @@ def make_profile_description():
         id="portfolio-table",
         data=df.to_dict("records"),
         columns=[{"name": i.upper(), "id": i} for i in df.columns],
-        style_cell=dict(textAlign="center", width="100px"),
-        style_header=dict(backgroundColor=table_colors["header"], fontWeight='bold', fontSize=20, border="1px solid white"),
-        style_data=dict(backgroundColor=table_colors["background"])
+        style_cell=dict(textAlign="left", width="100px"),
+        style_header=dict(
+            backgroundColor=table_colors["header"],
+            fontWeight="bold",
+            fontSize=20,
+            border="1px solid white",
+        ),
+        style_data=dict(backgroundColor=table_colors["background"]),
+        style_as_list_view=True
     )
 
     profile_container = html.Div(

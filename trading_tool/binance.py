@@ -154,6 +154,8 @@ def get_portfolio(client):
 
     df = df[["asset", "free", "price_usdt"]]
 
+    df.sort_values(by=["price_usdt"], inplace=True)
+
     return df
 
 
