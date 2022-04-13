@@ -180,7 +180,9 @@ def initialize_token_usdt(twm, client):
     token_pairs = list(map(lambda x: x + "USDT", df_balances["asset"].tolist()))
 
     for tokenpair in token_pairs:
-        twm.start_symbol_ticker_socket(symbol=tokenpair, callback=streaming_data_process)
+        twm.start_symbol_ticker_socket(
+            symbol=tokenpair, callback=streaming_data_process
+        )
 
     time.sleep(5)  # To give sufficient time for all tokenpairs to establish connection
 

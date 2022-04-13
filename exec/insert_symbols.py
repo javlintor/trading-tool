@@ -5,7 +5,6 @@ from trading_tool.binance import get_symbols
 from trading_tool.client import CLIENT
 
 
-
 def main():
 
     conn = create_connection("trading_tool.db")

@@ -1,10 +1,12 @@
-from datetime import datetime, date, timedelta
+from datetime import datetime, date
 
 from dash import html, dcc
 import dash_mantine_components as dmc
 
 
-def make_vertical_group(element, title_text="", tiny_gap=False, id_title=None, class_title=""):
+def make_vertical_group(
+    element, title_text="", tiny_gap=False, id_title=None, class_title=""
+):
 
     class_vg = "flex-container-col"
 
@@ -21,7 +23,9 @@ def make_vertical_group(element, title_text="", tiny_gap=False, id_title=None, c
     return vertical_group
 
 
-def make_time_range(max_date_allowed, min_date_allowed, initial_visible_month, id_suffix=""):
+def make_time_range(
+    max_date_allowed, min_date_allowed, initial_visible_month, id_suffix=""
+):
 
     start_day = dcc.DatePickerSingle(
         id="start_day" + id_suffix,
@@ -63,7 +67,9 @@ def make_time_range(max_date_allowed, min_date_allowed, initial_visible_month, i
         ],
     )
 
-    time_range = make_vertical_group(title_text="Select time interval", element=time_grid, class_title="medium-font")
+    time_range = make_vertical_group(
+        title_text="Select time interval", element=time_grid, class_title="medium-font"
+    )
 
     return time_range
 
@@ -90,7 +96,9 @@ def make_wallet(wallet_title, id_suffix="", id_component=None, class_name=None):
 
     wallet_grid = html.Div(className="wallet-grid", children=[a_coin, b_coin, total])
 
-    wallet = make_vertical_group(title_text=wallet_title, element=wallet_grid, class_title="big-font")
+    wallet = make_vertical_group(
+        title_text=wallet_title, element=wallet_grid, class_title="big-font"
+    )
 
     if id_component:
         wallet.id = id_component

@@ -49,7 +49,7 @@ def make_profile_description():
             border="1px solid white",
         ),
         style_data=dict(backgroundColor=table_colors["background"]),
-        style_as_list_view=True
+        style_as_list_view=True,
     )
 
     profile_container = html.Div(

@@ -10,11 +10,10 @@ def make_footer():
                 "javlintor",
                 href="https://github.com/javlintor",
                 target="_blank",
-                id="github-link"
+                id="github-link",
             ),
         ],
         className="footer flex-container",
     )
 
     return footer
-    

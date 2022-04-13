@@ -8,7 +8,11 @@ from trading_tool.client import CLIENT
 from trading_tool.db import get_db_klines_1d, CONN
 from trading_tool.binance import get_kline
 from trading_tool.strategy import simple_strategy
-from trading_tool.constants import MIN_DATE_ALLOWED, MAX_DATE_ALLOWED, INITIAL_VISIBLE_MONTH
+from trading_tool.constants import (
+    MIN_DATE_ALLOWED,
+    MAX_DATE_ALLOWED,
+    INITIAL_VISIBLE_MONTH,
+)
 from maindash import app
 from views.style import colors
 from views.components import make_vertical_group, make_time_range, make_wallet
