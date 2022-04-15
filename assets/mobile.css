@@ -1,14 +1,3 @@
-@import "basics.css";
-@import "header.css";
-@import "footer.css";
-@import "tabs.css";
-@import "backtesting.css";
-@import "profile.css";
-
-.Timeinput > *{
-    width: 100px;
-    color: white;
-}
 
 @media (max-width: 1200px) {
     .main-container {

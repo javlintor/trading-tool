@@ -15,7 +15,7 @@ from trading_tool.constants import (
 )
 from maindash import app
 from views.style import colors
-from views.components import make_vertical_group, make_time_range, make_wallet
+from views.components import make_vertical_group, make_time_range, make_wallet, make_input_wallet
 
 
 def make_backtesting_container_1():
@@ -61,7 +61,7 @@ def make_backtesting_container_1():
 
     backtesting_container_1 = html.Div(
         id="backtesting-container-1",
-        className="grid-container cool-container",
+        className="grid-container cool-container margins",
         children=[
             # global-options-container
             html.Div(
@@ -90,94 +90,69 @@ def make_backtesting_container_2():
         initial_visible_month=INITIAL_VISIBLE_MONTH,
     )
 
+    input_wallet = make_input_wallet(
+        wallet_title="Input Wallet",
+        id_suffix="-input",
+        id_component="input-wallet",
+        class_name="",
+    )
+
+    switch = make_vertical_group(
+        title_text="Switch trader",
+        element=daq.ToggleSwitch(id="reverse", value=False),
+    )
+
+    analytics_options = html.Div(
+        id="analytics-options",
+        className="flex-container jc-sa ai-fs cool-container bg-color-1",
+        children=[time_range, input_wallet, switch],
+    )
+
     start_wallet = make_wallet(
         wallet_title="Start Wallet",
         id_suffix="-start",
         id_component="start-wallet",
-        class_name="wallet cool-container",
+        class_name="bg-color-1 cool-container",
     )
     end_wallet = make_wallet(
         wallet_title="End Wallet",
         id_suffix="-end",
         id_component="end-wallet",
-        class_name="wallet cool-container",
+        class_name="bg-color-1 cool-container",
+    )
+    analytics_candle_plot = dcc.Graph(
+        id="analytics-candle-plot", responsive=True, className="height-100 candle-plot"
+    )
+
+    delta_param = make_vertical_group(
+        title_text="delta",
+        element=dcc.Slider(0, 0.03, value=0.015, step=0.005, id="delta", className="slider"),
+    )
+    alpha_param = make_vertical_group(
+        title_text="alpha",
+        element=dcc.Slider(0, 0.03, value=0.015, step=0.005, id="alpha", className="slider"),
+    )
+
+    simple_strategy_container = html.Div(
+        className="flex-container-col strategy-container", children=[alpha_param, delta_param]
+    )
+
+    strategies = html.Div(
+        id="strategies",
+        className="flex-container jc-fs ai-fs cool-container bg-color-1",
+        children=[simple_strategy_container],
     )
 
     backtesting_container_2 = html.Div(
         id="backtesting-container-2",
         className="grid-container cool-container",
         children=[
-            # options2-container
-            html.Div(
-                className="options2-container",
-                children=[
-                    # time range
-                    time_range,
-                    # delta
-                    html.Div(
-                        [
-                            html.Label("Choose delta parameter:", form="delta"),
-                            dcc.Slider(0, 0.03, value=0.01, step=0.002, id="delta"),
-                        ]
-                    ),
-                    # alpha
-                    html.Div(
-                        [
-                            html.Label("Choose alpha parameter:", form="day_picked"),
-                            dcc.Slider(0, 0.2, value=0.08, step=0.01, id="alpha"),
-                        ]
-                    ),
-                    # wallet + switch
-                    html.Div(
-                        [
-                            # wallet
-                            html.Div(
-                                [
-                                    html.Label(
-                                        "Start wallet:",
-                                    ),
-                                    html.Div(
-                                        [
-                                            dcc.Input(
-                                                id="start-wallet-ratio-1",
-                                                type="number",
-                                                placeholder=None,
-                                                value=0.3,
-                                                step=0.01,
-                                            ),
-                                            dcc.Input(
-                                                id="start-wallet-ratio-2",
-                                                type="number",
-                                                placeholder=None,
-                                                value=0.3,
-                                                step=0.01,
-                                            ),
-                                        ],
-                                        className="num-input-container",
-                                    ),
-                                ],
-                                className="flex-container-col",
-                            ),
-                            # switch
-                            html.Div(
-                                [
-                                    html.P("Switch trader"),
-                                    daq.ToggleSwitch(id="reverse", value=False),
-                                ],
-                                className="flex-container-col",
-                            ),
-                        ],
-                        className="flex-container",
-                    ),
-                ],
-            ),
-            # candle_1m
-            html.Div(
-                [
-                    dcc.Graph(id="candle_1m", responsive=True, className="candle_1m"),
-                ],
-                className="candle_1m-container",
-            ),
+            # analytics_options
+            analytics_options,
+            # strategies
+            strategies,
+            # analytics_candle_plot
+            analytics_candle_plot,
             # Start Wallet
             start_wallet,
             # End Wallet
@@ -236,8 +211,10 @@ def get_summary_candle_plot(symbol, start_date, end_date):
 @app.callback(
     Output("a-coin-name-start", "children"),
     Output("a-coin-name-end", "children"),
+    Output("a-coin-name-input", "children"),
     Output("b-coin-name-start", "children"),
     Output("b-coin-name-end", "children"),
+    Output("b-coin-name-input", "children"),
     Input("symbols", "value"),
 )
 def get_coins(symbol):
@@ -260,12 +237,12 @@ def get_coins(symbol):
     a_coin = df_coins["a_coin"].iloc[0]
     b_coin = df_coins["b_coin"].iloc[0]
 
-    return a_coin, a_coin, b_coin, b_coin
+    return a_coin, a_coin, a_coin, b_coin, b_coin, b_coin
 
 
 @app.callback(
-    Output("start_day", "date"),
-    Output("end_day", "date"),
+    Output("start-day", "date"),
+    Output("end-day", "date"),
     Input("summary-candle-plot", "clickData"),
 )
 def get_clicked_day(click_data):
@@ -280,25 +257,26 @@ def get_clicked_day(click_data):
 
 
 @app.callback(
-    Output("candle_1m", "figure"),
+    Output("analytics-candle-plot", "figure"),
     Output("a-coin-value-end", "children"),
     Output("b-coin-value-end", "children"),
     Output("a-coin-value-start", "children"),
     Output("b-coin-value-start", "children"),
     Output("total-value-start", "children"),
+    Output("total-value-input", "children"),
     Output("total-value-end", "children"),
-    Input("start_day", "date"),
-    Input("end_day", "date"),
-    Input("start_time", "value"),
-    Input("end_time", "value"),
+    Input("start-day", "date"),
+    Input("end-day", "date"),
+    Input("start-time", "value"),
+    Input("end-time", "value"),
     Input("symbols", "value"),
     Input("delta", "value"),
     Input("alpha", "value"),
-    Input("start-wallet-ratio-1", "value"),
-    Input("start-wallet-ratio-2", "value"),
+    Input("a-coin-value-input", "value"),
+    Input("b-coin-value-input", "value"),
     Input("reverse", "value"),
 )
-def get_candle_1m_plot(
+def get_analytics_candle_plot(
     start_day,
     end_day,
     start_time,
@@ -442,5 +420,74 @@ def get_candle_1m_plot(
         round(start_wallet_1, 2),
         round(start_wallet_2, 2),
         round(start_wallet_total, 2),
+        round(start_wallet_total, 2),
         round(end_wallet_total, 2),
     )
+
+
+# # options2-container
+# html.Div(
+#     className="options2-container",
+#     children=[
+#         # time range
+#         time_range,
+#         # wallet + switch
+#         html.Div(
+#             [
+#                 # wallet
+#                 html.Div(
+#                     [
+#                         html.Label(
+#                             "Start wallet:",
+#                         ),
+#                         html.Div(
+#                             [
+#                                 dcc.Input(
+#                                     id="start-wallet-ratio-1",
+#                                     type="number",
+#                                     placeholder=None,
+#                                     value=0.3,
+#                                     step=0.01,
+#                                 ),
+#                                 dcc.Input(
+#                                     id="start-wallet-ratio-2",
+#                                     type="number",
+#                                     placeholder=None,
+#                                     value=0.3,
+#                                     step=0.01,
+#                                 ),
+#                             ],
+#                             className="num-input-container",
+#                         ),
+#                     ],
+#                     className="flex-container-col",
+#                 ),
+#                 # switch
+#                 html.Div(
+#                     [
+#                         html.P("Switch trader"),
+#                         daq.ToggleSwitch(id="reverse", value=False),
+#                     ],
+#                     className="flex-container-col",
+#                 ),
+#             ],
+#             className="flex-container",
+#         ),
+#     ],
+# ),
+
+
+# # delta
+# delta_param = html.Div(
+#     [
+#         html.Label("Choose delta parameter:", form="delta"),
+#         dcc.Slider(0, 0.03, value=0.01, step=0.002, id="delta"),
+#     ]
+# )
+# # alpha
+# alpha_param = html.Div(
+#     [
+#         html.Label("Choose alpha parameter:", form="day_picked"),
+#         dcc.Slider(0, 0.2, value=0.08, step=0.01, id="alpha"),
+#     ]
+# )

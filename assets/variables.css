@@ -32,5 +32,9 @@
 
     /* dash app */
     --colors-background: var(--gray6);
+    --colors-background-2: var(--gray5);
     --colors-text: white;
+    --colors-text-2: var(--gray7);
+    --colors-text-3: var(--gray5);
+    --border-radius: 20px;
 }

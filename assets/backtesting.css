@@ -19,54 +19,46 @@
     padding-left: 30px;
     grid-area: options1;
     background-color: var(--colors-background);
-    border-radius: 20px;
+    border-radius: var(--border-radius);
     gap: 20px;
 }
 
 #backtesting-container-2 {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 600px 600px 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 500px 1fr;
     grid-template-areas: 
-        "options2 options2"
-        "figure figure"
-        "start-wallet end-wallet";
+        "options options options"
+        "strategies strategies strategies"
+        "figure figure figure"
+        "start-wallet end-wallet - ";
 }
 
-.candle_1m-container {
+#analytics-candle-plot {
     grid-area: figure;
-    padding: 4px;
-    border-radius: 20px;
-    background-color: var(--colors-background);
-}
-
-.candle_1m {
-    height: 100%;
 }
 
 .candle_plot {
     height: 100%;
 }
 
-.options2-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
-    padding-left: 30px;
-    grid-area: options2;
-    background-color: var(--colors-background);
-    border-radius: 20px;
-    gap: 20px;
+#analytics-candle-plot {
+    grid-area: figure;
+}
+
+#analytics-options {
+    grid-area: options;
+}
+
+#strategies {
+    grid-area: strategies;
 }
 
 #symbols {
     width: 200px;
 }
 
-
-.num-input-container {
-    display: flex;
-    justify-content: flex-start;
-    gap: 20px;
+#symbols * {
+    color: var(--colors-text-2);
 }
 
 .time-range-grid {
@@ -81,19 +73,19 @@
     align-items: center;
 }
 
-#start_day {
+#start-day {
     grid-area: date1;
 }
 
-#end_day {
+#end-day {
     grid-area: date2;
 }
 
-#start_time {
+#start-time {
     grid-area: time1;
 }
 
-#end_time {
+#end-time {
     grid-area: time2;
 }
 
@@ -117,10 +109,6 @@
     grid-area: end-wallet;
 }
 
-.wallet {
-    background-color: var(--colors-background);
-}
-
 .a-coin{
     grid-area: a-coin
 }
@@ -129,4 +117,15 @@
 }
 .total{
     grid-area: total
+}
+
+.strategy-container{
+    border: solid 1px white;
+    min-height: 150px;
+    padding: 20px;
+    border-radius: var(--border-radius);
+}
+
+.slider {
+    min-width: 200px;
 }

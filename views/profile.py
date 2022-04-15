@@ -18,7 +18,7 @@ def make_profile_description():
         hole=0.3,
         color_discrete_sequence=px.colors.sequential.RdBu,
     )
-    fig.update_traces(textposition="inside", textinfo="value+label")
+    fig.update_traces(textinfo="value+label")
     fig.update_layout(showlegend=False)
     fig.update_layout(
         {
@@ -41,7 +41,7 @@ def make_profile_description():
         id="portfolio-table",
         data=df.to_dict("records"),
         columns=[{"name": i.upper(), "id": i} for i in df.columns],
-        style_cell=dict(textAlign="left", width="100px"),
+        style_cell=dict(textAlign="left", width="70px"),
         style_header=dict(
             backgroundColor=table_colors["header"],
             fontWeight="bold",
@@ -52,9 +52,9 @@ def make_profile_description():
         style_as_list_view=True,
     )
 
-    profile_container = html.Div(
-        className="flex-container cool-container",
+    profile = html.Div(
+        className="flex-container cool-container margins",
         children=[pie_chart, portfolio_table],
     )
 
-    return profile_container
+    return profile

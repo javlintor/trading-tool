@@ -6,7 +6,7 @@
 #layout {
     color: var(--colors-text);
     background-color: var(--colors-background);
-    padding: 10px 200px;
+    padding: 10px 100px;
     font-size: var(--global-font-size);
     font-family: var(--font-text);
 }
@@ -23,6 +23,18 @@
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.jc-sa {
+    justify-content: space-around !important;
+}
+
+.jc-fs {
+    justify-content: flex-start !important;
+}
+
+.ai-fs {
+    align-items: flex-start;
 }
 
 .flex-container-col {
@@ -43,19 +55,18 @@
 }
 
 .cool-container {
-    background-color: var(--gray5);
-    border-radius: 20px;
-    padding: 50px;
-    margin-top: 70px;
+    background-color: var(--colors-background-2);
+    border-radius: var(--border-radius);
+    padding: 25px;
 }
 
 .big-numbers {
-    font-size: 2rem;
+    font-size: 1.3rem;
     color: var(--dark-yellow);
 }
 
 .big-font {
-    font-size: 1.7rem;
+    font-size: 1.5rem;
     font-weight: 600;
 }
 
@@ -64,9 +75,8 @@
     font-weight: 400;
 }
 
-.space{
-    padding: 0 10px;
-    font-size: 2rem;
+.margins {
+    margin: 30px 0;
 }
 
 .height-100 {
@@ -75,6 +85,16 @@
 
 .candle-plot {
     padding: 6px;
-    border-radius: 20px;
+    border-radius: var(--border-radius);
     background-color: var(--colors-background);
+}
+
+.bg-color-1 {
+    background-color: var(--colors-background);
+}
+
+.number-input {
+    width: 50px;
+    height: 25px;
+    font-size: 1.3rem;
 }
