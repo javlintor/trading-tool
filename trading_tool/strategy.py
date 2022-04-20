@@ -1,4 +1,5 @@
 from datetime import datetime
+import abc
 
 
 def simple_strategy(df, alpha=0.1, delta=0.01, wallet=(1, 1), reverse=False):
@@ -49,3 +50,31 @@ def simple_strategy(df, alpha=0.1, delta=0.01, wallet=(1, 1), reverse=False):
                 sell.append(next_brake)
 
     return buy, sell, wallet
+
+
+class Strategy(abc.ABC):
+    def __init__(self, df, interval):
+
+        self.df = df
+        self.interval = interval
+        self.buy = []
+        self.sell = []
+        self.trader()
+
+    @abc.abstractmethod
+    def trader(self):
+        pass
+
+    def get_n_operations(self):
+
+        n_operations = len(self.buy) + len(self.sell)
+
+        return n_operations
+
+
+class DoNothingStrategy(Strategy):
+    def trader(self):
+
+        buy, sell = [], []
+
+        return buy, sell

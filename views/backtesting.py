@@ -300,8 +300,8 @@ def get_analytics_candle_plot(
     symbol,
     delta,
     alpha,
-    start_wallet_ratio_1,
-    start_wallet_ratio_2,
+    a_coin_input,
+    b_coin_input,
     reverse,
 ):
 
@@ -348,8 +348,8 @@ def get_analytics_candle_plot(
 
     first = df.iloc[0]["close"]
     last = df.iloc[-1]["close"]
-    start_wallet_1 = start_wallet_ratio_1
-    start_wallet_2 = first * start_wallet_ratio_2
+    start_wallet_1 = a_coin_input
+    start_wallet_2 = first * b_coin_input
 
     wallet = (start_wallet_1, start_wallet_2)
     buy, sell, end_wallet = simple_strategy(
