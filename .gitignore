@@ -10,3 +10,4 @@ __pycache__/
 *.ipynb
 .vscode
 .pylintrc
+*.egg-info

@@ -25,7 +25,7 @@
 
 #backtesting-container-2 {
     grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 1fr 1fr 500px 1fr;
+    grid-template-rows: 220px 1fr 500px 220px;
     grid-template-areas: 
         "options options options"
         "strategies strategies strategies"

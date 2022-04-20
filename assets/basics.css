@@ -60,6 +60,10 @@
     padding: 25px;
 }
 
+.small-padding {
+    padding: 10px !important;
+}
+
 .big-numbers {
     font-size: 1.3rem;
     color: var(--dark-yellow);

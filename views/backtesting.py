@@ -1,7 +1,7 @@
 from datetime import datetime, date, timedelta
 import pandas as pd
 import dash_daq as daq
-from dash import html, dcc, Input, Output
+from dash import html, dcc, Input, Output, callback_context
 import plotly.graph_objects as go
 
 from trading_tool.client import CLIENT
@@ -112,13 +112,13 @@ def make_backtesting_container_2():
         wallet_title="Start Wallet",
         id_suffix="-start",
         id_component="start-wallet",
-        class_name="bg-color-1 cool-container",
+        class_name="bg-color-1 cool-container small-padding",
     )
     end_wallet = make_wallet(
         wallet_title="End Wallet",
         id_suffix="-end",
         id_component="end-wallet",
-        class_name="bg-color-1 cool-container",
+        class_name="bg-color-1 cool-container small-padding",
     )
     analytics_candle_plot = dcc.Graph(
         id="analytics-candle-plot", responsive=True, className="height-100 candle-plot"
@@ -133,14 +133,30 @@ def make_backtesting_container_2():
         element=dcc.Slider(0, 0.03, value=0.015, step=0.005, id="alpha", className="slider"),
     )
 
+    simple_strategy_activation = html.Button(
+        "Activate", id="simply-strategy-activation", n_clicks=0
+    )
+
     simple_strategy_container = html.Div(
-        className="flex-container-col strategy-container", children=[alpha_param, delta_param]
+        id="simple-strategy",
+        className="flex-container-col strategy-container",
+        n_clicks=0,
+        children=[alpha_param, delta_param, simple_strategy_activation],
+    )
+
+    buttons = html.Div(
+        [
+            html.Button("Button 1", id="btn-nclicks-1", n_clicks=0),
+            html.Button("Button 2", id="btn-nclicks-2", n_clicks=0),
+            html.Button("Button 3", id="btn-nclicks-3", n_clicks=0),
+            html.Div(id="container-button-timestamp"),
+        ]
     )
 
     strategies = html.Div(
         id="strategies",
         className="flex-container jc-fs ai-fs cool-container bg-color-1",
-        children=[simple_strategy_container],
+        children=[simple_strategy_container, buttons],
     )
 
     backtesting_container_2 = html.Div(
@@ -425,69 +441,20 @@ def get_analytics_candle_plot(
     )
 
 
-# # options2-container
-# html.Div(
-#     className="options2-container",
-#     children=[
-#         # time range
-#         time_range,
-#         # wallet + switch
-#         html.Div(
-#             [
-#                 # wallet
-#                 html.Div(
-#                     [
-#                         html.Label(
-#                             "Start wallet:",
-#                         ),
-#                         html.Div(
-#                             [
-#                                 dcc.Input(
-#                                     id="start-wallet-ratio-1",
-#                                     type="number",
-#                                     placeholder=None,
-#                                     value=0.3,
-#                                     step=0.01,
-#                                 ),
-#                                 dcc.Input(
-#                                     id="start-wallet-ratio-2",
-#                                     type="number",
-#                                     placeholder=None,
-#                                     value=0.3,
-#                                     step=0.01,
-#                                 ),
-#                             ],
-#                             className="num-input-container",
-#                         ),
-#                     ],
-#                     className="flex-container-col",
-#                 ),
-#                 # switch
-#                 html.Div(
-#                     [
-#                         html.P("Switch trader"),
-#                         daq.ToggleSwitch(id="reverse", value=False),
-#                     ],
-#                     className="flex-container-col",
-#                 ),
-#             ],
-#             className="flex-container",
-#         ),
-#     ],
-# ),
-
-
-# # delta
-# delta_param = html.Div(
-#     [
-#         html.Label("Choose delta parameter:", form="delta"),
-#         dcc.Slider(0, 0.03, value=0.01, step=0.002, id="delta"),
-#     ]
-# )
-# # alpha
-# alpha_param = html.Div(
-#     [
-#         html.Label("Choose alpha parameter:", form="day_picked"),
-#         dcc.Slider(0, 0.2, value=0.08, step=0.01, id="alpha"),
-#     ]
-# )
+@app.callback(
+    Output("container-button-timestamp", "children"),
+    Input("btn-nclicks-1", "n_clicks"),
+    Input("btn-nclicks-2", "n_clicks"),
+    Input("btn-nclicks-3", "n_clicks"),
+)
+def displayClick(btn1, btn2, btn3):
+    changed_id = [p["prop_id"] for p in callback_context.triggered][0]
+    if "btn-nclicks-1" in changed_id:
+        msg = "Button 1 was most recently clicked"
+    elif "btn-nclicks-2" in changed_id:
+        msg = "Button 2 was most recently clicked"
+    elif "btn-nclicks-3" in changed_id:
+        msg = "Button 3 was most recently clicked"
+    else:
+        msg = "None of the buttons have been clicked yet"
+    return html.Div(msg)
