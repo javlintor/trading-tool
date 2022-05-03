@@ -2,6 +2,9 @@ import sqlite3
 from sqlite3 import Error
 import pandas as pd
 
+from trading_tool.binance import get_prices
+from trading_tool.client import CLIENT
+
 
 def create_connection(db_file):
     """create a database connection to a SQLite database"""
@@ -132,3 +135,47 @@ def get_db_klines_1d(conn, symbol=None, start_date="2022-01-01", end_date="2022-
     df = pd.read_sql(query, conn)
 
     return df
+
+
+def get_coin_names_from_symbol(symbol):
+
+    df_coins = pd.read_sql(
+        con=CONN,
+        sql=f"""
+        SELECT
+            a_coin.asset AS a_coin,
+            b_coin.asset AS b_coin
+        FROM symbols AS symbols
+        INNER JOIN assets AS a_coin
+            ON symbols.id_baseAsset = a_coin.id
+        INNER JOIN assets AS b_coin 
+            ON symbols.id_quoteAsset = b_coin.id
+        WHERE symbols.symbol = '{symbol}'
+        """,
+    )
+
+    if df_coins.shape[0] == 0:
+        print("symbol is not in ddbb")
+        return None, None
+
+    a_coin = df_coins["a_coin"].iloc[0]
+    b_coin = df_coins["b_coin"].iloc[0]
+
+    return a_coin, b_coin
+
+
+def to_usdt(asset, amount):
+
+    if asset == "USDT":
+        return amount
+
+    df_prices = get_prices(CLIENT)
+    amount_usdt = amount * df_prices.loc[df_prices["asset"] == asset]["price"][0]
+    return amount_usdt
+
+
+def from_usdt(asset, amount):
+
+    df_prices = get_prices(CLIENT)
+    amount_usdt = amount / df_prices.loc[df_prices["asset"] == asset]["price"][0]
+    return amount_usdt

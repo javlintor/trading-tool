@@ -1,21 +1,22 @@
 from datetime import datetime, date, timedelta
 import pandas as pd
 import dash_daq as daq
-from dash import html, dcc, Input, Output, callback_context
+from dash import html, dcc, Input, Output
 import plotly.graph_objects as go
 
 from trading_tool.client import CLIENT
-from trading_tool.db import get_db_klines_1d, CONN
+from trading_tool.db import get_db_klines_1d, CONN, get_coin_names_from_symbol
 from trading_tool.binance import get_kline
-from trading_tool.strategy import simple_strategy
+from trading_tool.strategy import SimpleTrader, Wallet
 from trading_tool.constants import (
     MIN_DATE_ALLOWED,
     MAX_DATE_ALLOWED,
     INITIAL_VISIBLE_MONTH,
 )
 from maindash import app
-from views.style import colors
 from views.components import make_vertical_group, make_time_range, make_wallet, make_input_wallet
+from views.plot import render_analytics_plot
+from views.style import colors, LIGHT_GREEN, ORANGE
 
 
 def make_backtesting_container_1():
@@ -144,19 +145,19 @@ def make_backtesting_container_2():
         children=[alpha_param, delta_param, simple_strategy_activation],
     )
 
-    buttons = html.Div(
-        [
-            html.Button("Button 1", id="btn-nclicks-1", n_clicks=0),
-            html.Button("Button 2", id="btn-nclicks-2", n_clicks=0),
-            html.Button("Button 3", id="btn-nclicks-3", n_clicks=0),
-            html.Div(id="container-button-timestamp"),
-        ]
-    )
+    # buttons = html.Div(
+    #     [
+    #         html.Button("Button 1", id="btn-nclicks-1", n_clicks=0),
+    #         html.Button("Button 2", id="btn-nclicks-2", n_clicks=0),
+    #         html.Button("Button 3", id="btn-nclicks-3", n_clicks=0),
+    #         html.Div(id="container-button-timestamp"),
+    #     ]
+    # )
 
     strategies = html.Div(
         id="strategies",
         className="flex-container jc-fs ai-fs cool-container bg-color-1",
-        children=[simple_strategy_container, buttons],
+        children=[simple_strategy_container],
     )
 
     backtesting_container_2 = html.Div(
@@ -235,23 +236,7 @@ def get_summary_candle_plot(symbol, start_date, end_date):
 )
 def get_coins(symbol):
 
-    df_coins = pd.read_sql(
-        con=CONN,
-        sql=f"""
-        SELECT
-            a_coin.asset AS a_coin,
-            b_coin.asset AS b_coin
-        FROM symbols AS symbols
-        INNER JOIN assets AS a_coin
-            ON symbols.id_baseAsset = a_coin.id
-        INNER JOIN assets AS b_coin 
-            ON symbols.id_quoteAsset = b_coin.id
-        WHERE symbols.symbol = '{symbol}'
-        """,
-    )
-
-    a_coin = df_coins["a_coin"].iloc[0]
-    b_coin = df_coins["b_coin"].iloc[0]
+    a_coin, b_coin = get_coin_names_from_symbol(symbol)
 
     return a_coin, a_coin, a_coin, b_coin, b_coin, b_coin
 
@@ -290,7 +275,6 @@ def get_clicked_day(click_data):
     Input("alpha", "value"),
     Input("a-coin-value-input", "value"),
     Input("b-coin-value-input", "value"),
-    Input("reverse", "value"),
 )
 def get_analytics_candle_plot(
     start_day,
@@ -302,7 +286,6 @@ def get_analytics_candle_plot(
     alpha,
     a_coin_input,
     b_coin_input,
-    reverse,
 ):
 
     start_day = datetime.strptime(start_day, "%Y-%m-%d")
@@ -330,131 +313,54 @@ def get_analytics_candle_plot(
     df["avg_10"] = df["close"].rolling(10).mean()
     df["avg_50"] = df["close"].rolling(50).mean()
     df.dropna(inplace=True)
+    df["ds"] = df["dateTime"]
+    df["y"] = df["close"]
 
-    fig = go.Figure(
-        data=[
-            go.Candlestick(
-                x=df["dateTime"],
-                open=df["open"],
-                high=df["high"],
-                low=df["low"],
-                close=df["close"],
-                increasing_line_color="cyan",
-                decreasing_line_color="yellow",
-                name="candle",
-            )
-        ]
+    start_wallet = Wallet(
+        symbol=symbol,
+        a=a_coin_input,
+        b=b_coin_input,
     )
 
-    first = df.iloc[0]["close"]
-    last = df.iloc[-1]["close"]
-    start_wallet_1 = a_coin_input
-    start_wallet_2 = first * b_coin_input
+    start_wallet_total = start_wallet.get_value_usdt()
 
-    wallet = (start_wallet_1, start_wallet_2)
-    buy, sell, end_wallet = simple_strategy(
-        df=df, alpha=alpha, delta=delta, wallet=wallet, reverse=reverse
+    simple_trader = SimpleTrader(df=df, start_wallet=start_wallet, alpha=alpha, delta=delta)
+
+    end_wallet = simple_trader.end_wallet
+    end_wallet_total = end_wallet.get_value_usdt()
+
+    fig = render_analytics_plot(
+        df=simple_trader.df,
+        symbol=simple_trader.start_wallet.symbol,
+        avgs={"avg_10": LIGHT_GREEN, "avg_50": ORANGE},
     )
-
-    start_wallet_total = wallet[0] * first + wallet[1]
-    end_wallet_total = end_wallet[0] * last + end_wallet[1]
-
-    break_points = buy + sell + [df["dateTime"].iloc[-1]]
-    break_points.sort()
-
-    time_aux = df["dateTime"].iloc[0]
-    for break_point in break_points:
-
-        y = df.loc[df["dateTime"] == time_aux]["close"].iloc[0]
-
-        fig.add_trace(
-            go.Scatter(
-                x=[time_aux, break_point],
-                y=[y * (1 - delta)] * 2,
-                mode="lines",
-                line=dict(width=2, dash="dash", color="red"),
-                showlegend=False,
-            )
-        )
-
-        fig.add_trace(
-            go.Scatter(
-                x=[time_aux, break_point],
-                y=[y * (1 + delta)] * 2,
-                mode="lines",
-                line=dict(width=2, dash="dash", color="green"),
-                showlegend=False,
-            )
-        )
-        time_aux = break_point
-
-    fig.add_trace(
-        go.Scatter(
-            x=df["dateTime"],
-            y=df["avg_10"],
-            mode="lines",
-            name="avg_10",
-            line=dict(width=5, color="#44B78B"),
-        )
-    )
-
-    fig.add_trace(
-        go.Scatter(
-            x=df["dateTime"],
-            y=df["avg_50"],
-            mode="lines",
-            name="avg_50",
-            line=dict(width=5, color="#d06c14"),
-        )
-    )
-
-    fig.update_layout(
-        {
-            "plot_bgcolor": colors["background"],
-            "paper_bgcolor": colors["background"],
-            "font": {"color": colors["text"]},
-        }
-    )
-
-    fig.update_layout(
-        title={
-            "text": symbol,
-            "y": 0.9,
-            "x": 0.5,
-            "xanchor": "center",
-            "yanchor": "top",
-        }
-    )
-
-    fig.update_layout(xaxis_rangeslider_visible=False)
-    # fig.update_layout(showlegend=False)
 
     return (
         fig,
-        round(end_wallet[0], 2),
-        round(end_wallet[1], 2),
-        round(start_wallet_1, 2),
-        round(start_wallet_2, 2),
+        round(end_wallet.a, 2),
+        round(end_wallet.b, 2),
+        round(a_coin_input, 2),
+        round(b_coin_input, 2),
         round(start_wallet_total, 2),
         round(start_wallet_total, 2),
         round(end_wallet_total, 2),
     )
 
 
-@app.callback(
-    Output("container-button-timestamp", "children"),
-    Input("btn-nclicks-1", "n_clicks"),
-    Input("btn-nclicks-2", "n_clicks"),
-    Input("btn-nclicks-3", "n_clicks"),
-)
-def displayClick(btn1, btn2, btn3):
-    changed_id = [p["prop_id"] for p in callback_context.triggered][0]
-    if "btn-nclicks-1" in changed_id:
-        msg = "Button 1 was most recently clicked"
-    elif "btn-nclicks-2" in changed_id:
-        msg = "Button 2 was most recently clicked"
-    elif "btn-nclicks-3" in changed_id:
-        msg = "Button 3 was most recently clicked"
-    else:
-        msg = "None of the buttons have been clicked yet"
-    return html.Div(msg)
+# @app.callback(
+#     Output("container-button-timestamp", "children"),
+#     Input("btn-nclicks-1", "n_clicks"),
+#     Input("btn-nclicks-2", "n_clicks"),
+#     Input("btn-nclicks-3", "n_clicks"),
+# )
+# def display_click(btn1, btn2, btn3):
+#     changed_id = [p["prop_id"] for p in callback_context.triggered][0]
+#     if "btn-nclicks-1" in changed_id:
+#         msg = "Button 1 was most recently clicked"
+#     elif "btn-nclicks-2" in changed_id:
+#         msg = "Button 2 was most recently clicked"
+#     elif "btn-nclicks-3" in changed_id:
+#         msg = "Button 3 was most recently clicked"
+#     else:
+#         msg = "None of the buttons have been clicked yet"
+#     return html.Div(msg)

@@ -1,57 +1,10 @@
 from datetime import datetime
 import abc
+import copy
 
 import numpy as np
 
-
-def simple_strategy(df, alpha=0.1, delta=0.01, wallet=(1, 1), reverse=False):
-
-    buy = []
-    sell = []
-
-    while df.shape[0] > 0:
-
-        actual = df["close"].iloc[0]
-
-        buy_limit = actual * (1 - delta)
-        sell_limit = actual * (1 + delta)
-
-        buy_future = df.loc[df["close"] <= buy_limit]
-        sell_future = df.loc[df["close"] >= sell_limit]
-
-        if buy_future.shape[0] > 0:
-            buy_hor = buy_future.iloc[0]["dateTime"]
-        else:
-            buy_hor = datetime.max
-
-        if sell_future.shape[0] > 0:
-            sell_hor = sell_future.iloc[0]["dateTime"]
-        else:
-            sell_hor = datetime.max
-
-        next_brake = min(buy_hor, sell_hor)
-        if next_brake == datetime.max:
-            break
-
-        df = df.loc[df["dateTime"] > next_brake]
-
-        is_buy = buy_hor < sell_hor
-        if reverse:
-            is_buy = ~is_buy
-
-        if is_buy:
-
-            if wallet[1] > 0:
-                wallet = wallet[0] + alpha * wallet[1] / actual, wallet[1] * (1 - alpha)
-                buy.append(next_brake)
-
-        else:
-
-            if wallet[0] > 0:
-                wallet = wallet[0] * (1 - alpha), wallet[1] + alpha * wallet[0] * actual
-                sell.append(next_brake)
-
-    return buy, sell, wallet
+from trading_tool.db import get_coin_names_from_symbol, to_usdt
 
 
 class Strategy(abc.ABC):
@@ -67,7 +20,7 @@ class Strategy(abc.ABC):
             - ds: datetime
             - y: float
     starwallet :
-        tuple with starting amounts of each coin
+        object of wallet class
 
     **kargs:
         rest of parameters used in trader method
@@ -75,10 +28,11 @@ class Strategy(abc.ABC):
 
     def __init__(self, df, start_wallet):
 
-        self.df = df.copy()
+        self.df = df
         self.df["buy"] = 0
         self.df["sell"] = 0
         self.start_wallet = start_wallet
+        self.end_wallet = None
         self.periods = self.get_periods()
 
     @abc.abstractmethod
@@ -89,6 +43,9 @@ class Strategy(abc.ABC):
         buy = 10000 means we want to buy 1000/y BTC using 1000 USDT from our wallet.
         Likewise, sell = 10000 means we want to use 1000/y BTC from out wallet to buy
         1000 USDT
+
+        Must return an object of type wallet representing ending wallet and assign it
+        to an attribute called end_wallet
         """
 
     def assess_operations(self):
@@ -163,21 +120,11 @@ class Strategy(abc.ABC):
 
         return n_bad_operations
 
-    def get_end_wallet(self):
+    def get_profitabilities(self):
 
-        wallet = self.start_wallet
-        operations = self.get_operations()
-        for _, row in operations.iterrows():
-            buy_sell = row["buy"] - row["sell"]
-            wallet = wallet[0] + buy_sell / row["y"], wallet[1] - buy_sell
-        return wallet
-
-    def get_profitability(self):
-
-        start_wallet_value = self.start_wallet[0] * self.df["y"].iloc[0] + self.start_wallet[1]
-        end_wallet = self.get_end_wallet()
-        end_wallet_value = end_wallet[0] * self.df["y"].iloc[-1] + end_wallet[1]
-        profitability = start_wallet_value / end_wallet_value
+        start_wallet_value = self.start_wallet.a * self.df["y"].iloc[0] + self.start_wallet.b
+        end_wallet_value = self.end_wallet.a * self.df["y"].iloc[-1] + self.end_wallet.b
+        profitability = (start_wallet_value - end_wallet_value) / start_wallet_value * 100
         daily_profitability = profitability / self.periods["day"]
         weekly_profitability = profitability / self.periods["week"]
         yearly_profitability = profitability / self.periods["year"]
@@ -192,22 +139,88 @@ class Strategy(abc.ABC):
         return profitabilities
 
 
+class SimpleTrader(Strategy):
+    def __init__(self, df, start_wallet, alpha, delta):
+        super().__init__(df, start_wallet)
+        self.alpha = alpha
+        self.delta = delta
+        self.end_wallet = self.trader()
+        self.assess_operations()
+        self.profitabilities = self.get_profitabilities()
+
+    def trader(self):
+        ref_value = self.df["y"].iloc[0]
+        wallet = copy.copy(self.start_wallet)
+        for i, _ in self.df.iterrows():
+            iter_value = self.df.loc[i, "y"]
+            if iter_value >= ref_value * (1 + self.delta):
+                self.df.at[i, "sell"] = self.alpha * wallet.a * iter_value
+                wallet.a, wallet.b = wallet.a * (1 - self.alpha), wallet.b + self.df.loc[i, "sell"]
+                ref_value = iter_value
+            if iter_value <= ref_value * (1 - self.delta):
+                self.df.at[i, "buy"] = self.alpha * wallet.b
+                wallet.a, wallet.b = wallet.a + self.df.at[i, "buy"] / iter_value, wallet.b * (
+                    1 - self.alpha
+                )
+                ref_value = iter_value
+        return wallet
+
+
 class DoNothing(Strategy):
     def __init__(self, df, start_wallet):
         super().__init__(df, start_wallet)
-        self.trader()
+        self.end_wallet = self.trader()
         self.assess_operations()
+        self.profitabilities = self.get_profitabilities()
 
     def trader(self):
-        pass
+        return copy.copy(self.start_wallet)
 
 
 class BFSL(Strategy):
     def __init__(self, df, start_wallet, alpha):
         super().__init__(df, start_wallet)
         self.alpha = alpha
-        self.trader()
+        self.end_wallet = self.trader()
         self.assess_operations()
+        self.profitabilities = self.get_profitabilities()
 
     def trader(self):
-        self.df.loc[0, "buy"] = self.alpha
+        wallet = copy.copy(self.start_wallet)
+        self.df.at[self.df.index[0], "buy"] = self.alpha * wallet.b
+        wallet.a, wallet.b = wallet.a + self.df["buy"].iloc[0] / self.df["y"].iloc[0], wallet.b * (
+            1 - self.alpha
+        )
+        self.df.at[self.df.index[-1], "sell"] = self.alpha * wallet.a * self.df["y"].iloc[-1]
+        wallet.a, wallet.b = (
+            wallet.a * (1 - self.alpha),
+            wallet.b + self.df.loc[self.df.index[-1], "sell"],
+        )
+
+        return wallet
+
+
+class Wallet:
+    def __init__(self, symbol, a, b):
+        self.symbol = symbol
+        self.a = a
+        self.b = b
+        self.a_name, self.b_name = get_coin_names_from_symbol(self.symbol)
+
+    def get_a_coin_usdt(self):
+
+        value_usdt = to_usdt(asset=self.a_name, amount=self.a)
+
+        return value_usdt
+
+    def get_b_coin_usdt(self):
+
+        value_usdt = to_usdt(asset=self.b_name, amount=self.b)
+
+        return value_usdt
+
+    def get_value_usdt(self):
+
+        value_usdt = self.get_a_coin_usdt() + self.get_b_coin_usdt()
+
+        return value_usdt

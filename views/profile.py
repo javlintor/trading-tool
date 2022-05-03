@@ -28,7 +28,7 @@ def make_profile_description():
         }
     )
 
-    # TODO: this should be done inside dash_table.DataTable
+    # this should be done inside dash_table.DataTable
     df["price_usdt"] = df["price_usdt"].apply(lambda x: "$ " + str(x))
 
     pie_chart = dcc.Graph(
