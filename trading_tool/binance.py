@@ -53,7 +53,7 @@ def get_kline(
     start_datetime=datetime(2022, 1, 1),
     end_datetime=datetime(2022, 1, 1),
     symbol="BTCUSDT",
-    interval="1d",
+    interval=None,
 ):
     """
     Get klines from Binance API
@@ -62,6 +62,9 @@ def get_kline(
     :param symbol
     :param interval
     """
+
+    if interval is None:
+        interval = client.KLINE_INTERVAL_1MINUTE
 
     start_str = start_datetime.strftime("%c")
     end_str = end_datetime.strftime("%c")

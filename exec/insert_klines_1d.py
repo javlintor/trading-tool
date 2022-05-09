@@ -32,7 +32,7 @@ def main():
             start_datetime=start_datetime,
             end_datetime=end_datetime,
             symbol=symbol,
-            interval="1d",
+            interval=CLIENT.KLINE_INTERVAL_1DAY,
         )
         print(symbol)
         print(df.head())

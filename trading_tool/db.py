@@ -1,8 +1,10 @@
+from datetime import timedelta
+
 import sqlite3
 from sqlite3 import Error
 import pandas as pd
 
-from trading_tool.binance import get_prices
+from trading_tool.binance import get_prices, get_kline
 from trading_tool.client import CLIENT
 
 
@@ -164,18 +166,40 @@ def get_coin_names_from_symbol(symbol):
     return a_coin, b_coin
 
 
-def to_usdt(asset, amount):
+def get_usdt_conversion_rate(asset, time=None):
 
     if asset == "USDT":
-        return amount
+        return 1
 
-    df_prices = get_prices(CLIENT)
-    amount_usdt = amount * df_prices.loc[df_prices["asset"] == asset]["price"][0]
-    return amount_usdt
+    # If time is None (default), get prices using get_all_ticker
+    # to get the most recent exchange
+    if time is None:
+        df_prices = get_prices(CLIENT)
+        conversion_rate = df_prices.loc[df_prices["asset"] == asset]["price"][0]
+        return conversion_rate
+
+    # If time is passed, then use klines to calculate conversion
+    symbol = asset + "USDT"
+    df_trade = get_kline(
+        CLIENT,
+        start_datetime=time,
+        end_datetime=time + timedelta(minutes=1),
+        symbol=symbol,
+        interval=CLIENT.KLINE_INTERVAL_1MINUTE,
+    )
+    conversion_rate = df_trade["close"].iloc[0]
+    return conversion_rate
 
 
-def from_usdt(asset, amount):
+def to_usdt(asset, amount, time=None):
 
-    df_prices = get_prices(CLIENT)
-    amount_usdt = amount / df_prices.loc[df_prices["asset"] == asset]["price"][0]
-    return amount_usdt
+    conversion_rate = get_usdt_conversion_rate(asset, time)
+    value_usdt = amount * conversion_rate
+    return value_usdt
+
+
+def from_usdt(asset, amount, time=None):
+
+    conversion_rate = get_usdt_conversion_rate(asset, time)
+    value_coin = amount / conversion_rate
+    return value_coin

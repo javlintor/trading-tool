@@ -3,8 +3,12 @@ from datetime import datetime, date
 from dash import html, dcc
 import dash_mantine_components as dmc
 
+from views.style import format_number
 
-def make_vertical_group(element, title_text="", tiny_gap=False, id_title=None, class_title=""):
+
+def make_vertical_group(
+    element, title_text="", tiny_gap=False, id_title=None, class_title="", gap=None
+):
 
     class_vg = "flex-container-col"
 
@@ -16,7 +20,11 @@ def make_vertical_group(element, title_text="", tiny_gap=False, id_title=None, c
     if id_title:
         title.id = id_title
 
-    vertical_group = html.Div(className=class_vg, children=[title, element])
+    style = {}
+    if gap is not None:
+        style = {"gap": gap}
+
+    vertical_group = html.Div(className=class_vg, children=[title, element], style=style)
 
     return vertical_group
 
@@ -108,11 +116,7 @@ def make_input_wallet(wallet_title, id_suffix="", id_component=None, class_name=
     a_coin = make_vertical_group(
         id_title="a-coin-name" + id_suffix,
         element=dcc.Input(
-            id="a-coin-value" + id_suffix,
-            className="number-input",
-            type="number",
-            value=0.3,
-            step=0.1
+            id="a-coin-value" + id_suffix, className="number-input", type="text", min=0
         ),
     )
     a_coin.className = "a-coin"
@@ -120,11 +124,7 @@ def make_input_wallet(wallet_title, id_suffix="", id_component=None, class_name=
     b_coin = make_vertical_group(
         id_title="b-coin-name" + id_suffix,
         element=dcc.Input(
-            id="b-coin-value" + id_suffix,
-            className="number-input",
-            type="number",
-            value=0.3,
-            step=0.1
+            id="b-coin-value" + id_suffix, className="number-input", type="text", min=0
         ),
     )
     b_coin.className = "b-coin"
@@ -148,3 +148,12 @@ def make_input_wallet(wallet_title, id_suffix="", id_component=None, class_name=
         wallet.className = wallet.className + " " + class_name
 
     return wallet
+
+
+def make_metric(metric_name, id_number):
+
+    value_p = html.P(id=id_number, className="big-numbers")
+
+    metric_component = make_vertical_group(element=value_p, title_text=metric_name, gap="5px")
+
+    return metric_component

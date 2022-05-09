@@ -1,4 +1,3 @@
-from datetime import datetime
 import abc
 import copy
 
@@ -102,11 +101,13 @@ class Strategy(abc.ABC):
 
         operations = self.get_operations()
 
-        if operations.shape[0] > 0:
-            mean_operation_time = operations["ds"].diff().dropna().mean()
-            return mean_operation_time
+        if operations.shape[0] > 1:
+            mean_operation_time = operations["ds"].diff().dropna().apply(lambda x: x.seconds // 60).mean()
+            mean_operation_time = round(mean_operation_time, 2)
+            mean_operation_time_str = f"{mean_operation_time} minutes"
+            return mean_operation_time_str
 
-        return None
+        return "Hay menos de dos operaciones"
 
     def get_n_good_operations(self):
 
@@ -139,7 +140,7 @@ class Strategy(abc.ABC):
         return profitabilities
 
 
-class SimpleTrader(Strategy):
+class SimpleStrategy(Strategy):
     def __init__(self, df, start_wallet, alpha, delta):
         super().__init__(df, start_wallet)
         self.alpha = alpha
@@ -166,7 +167,7 @@ class SimpleTrader(Strategy):
         return wallet
 
 
-class DoNothing(Strategy):
+class DummyStrategy(Strategy):
     def __init__(self, df, start_wallet):
         super().__init__(df, start_wallet)
         self.end_wallet = self.trader()

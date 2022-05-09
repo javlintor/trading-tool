@@ -1,22 +1,31 @@
 from datetime import datetime, date, timedelta
 import pandas as pd
 import dash_daq as daq
-from dash import html, dcc, Input, Output
+import dash_bootstrap_components as dbc
+from dash import html, dcc, Input, Output, callback_context
 import plotly.graph_objects as go
 
 from trading_tool.client import CLIENT
-from trading_tool.db import get_db_klines_1d, CONN, get_coin_names_from_symbol
+from trading_tool.db import get_db_klines_1d, CONN, get_coin_names_from_symbol, from_usdt
 from trading_tool.binance import get_kline
-from trading_tool.strategy import SimpleTrader, Wallet
+from trading_tool.strategy import SimpleStrategy, DummyStrategy, Wallet
 from trading_tool.constants import (
     MIN_DATE_ALLOWED,
     MAX_DATE_ALLOWED,
     INITIAL_VISIBLE_MONTH,
+    PRECISION,
+    INITIAL_AMOUNT_USDT,
 )
 from maindash import app
-from views.components import make_vertical_group, make_time_range, make_wallet, make_input_wallet
+from views.components import (
+    make_vertical_group,
+    make_time_range,
+    make_wallet,
+    make_input_wallet,
+    make_metric,
+)
 from views.plot import render_analytics_plot
-from views.style import colors, LIGHT_GREEN, ORANGE
+from views.style import colors, LIGHT_GREEN, ORANGE, format_number
 
 
 def make_backtesting_container_1():
@@ -98,25 +107,20 @@ def make_backtesting_container_2():
         class_name="",
     )
 
-    switch = make_vertical_group(
-        title_text="Switch trader",
-        element=daq.ToggleSwitch(id="reverse", value=False),
-    )
-
     analytics_options = html.Div(
         id="analytics-options",
         className="flex-container jc-sa ai-fs cool-container bg-color-1",
-        children=[time_range, input_wallet, switch],
+        children=[time_range, input_wallet],
     )
 
     start_wallet = make_wallet(
-        wallet_title="Start Wallet",
+        wallet_title="💰 Start Wallet",
         id_suffix="-start",
         id_component="start-wallet",
         class_name="bg-color-1 cool-container small-padding",
     )
     end_wallet = make_wallet(
-        wallet_title="End Wallet",
+        wallet_title="💰 End Wallet",
         id_suffix="-end",
         id_component="end-wallet",
         class_name="bg-color-1 cool-container small-padding",
@@ -124,6 +128,24 @@ def make_backtesting_container_2():
     analytics_candle_plot = dcc.Graph(
         id="analytics-candle-plot", responsive=True, className="height-100 candle-plot"
     )
+
+    # ---- Strategies ------
+
+    # dummy
+
+    dummy_strategy_label = html.Label(children="Dummy Strategy", className="big-font")
+
+    dummy_strategy_activation = html.Button("Activate", id="dummy-strategy-btn")
+
+    dummy_strategy_container = html.Div(
+        id="dummy-strategy",
+        className="flex-container-col strategy-container",
+        children=[dummy_strategy_label, dummy_strategy_activation],
+    )
+
+    # simple
+
+    simple_strategy_label = html.Label(children="Simple Strategy", className="big-font")
 
     delta_param = make_vertical_group(
         title_text="delta",
@@ -134,30 +156,46 @@ def make_backtesting_container_2():
         element=dcc.Slider(0, 0.03, value=0.015, step=0.005, id="alpha", className="slider"),
     )
 
-    simple_strategy_activation = html.Button(
-        "Activate", id="simply-strategy-activation", n_clicks=0
-    )
+    simple_strategy_activation = html.Button("Activate", id="simple-strategy-btn")
 
     simple_strategy_container = html.Div(
         id="simple-strategy",
         className="flex-container-col strategy-container",
-        n_clicks=0,
-        children=[alpha_param, delta_param, simple_strategy_activation],
+        children=[simple_strategy_label, alpha_param, delta_param, simple_strategy_activation],
     )
-
-    # buttons = html.Div(
-    #     [
-    #         html.Button("Button 1", id="btn-nclicks-1", n_clicks=0),
-    #         html.Button("Button 2", id="btn-nclicks-2", n_clicks=0),
-    #         html.Button("Button 3", id="btn-nclicks-3", n_clicks=0),
-    #         html.Div(id="container-button-timestamp"),
-    #     ]
-    # )
 
     strategies = html.Div(
         id="strategies",
-        className="flex-container jc-fs ai-fs cool-container bg-color-1",
-        children=[simple_strategy_container],
+        className="flex-container jc-fs ai-stretch cool-container bg-color-1",
+        children=[dummy_strategy_container, simple_strategy_container],
+    )
+
+    # ------ metrics ----------
+
+    n_operations = make_metric(metric_name="# of operations", id_number="n-operations")
+    n_good_operations = make_metric(
+        metric_name="# of good operations ✅", id_number="n-good-operations"
+    )
+    n_bad_operations = make_metric(
+        metric_name="# of bad operations ❌", id_number="n-bad-operations"
+    )
+    n_operations_by_hour = make_metric(
+        metric_name="# of operations by hour 🕙", id_number="n-operations-by-hour"
+    )
+    mean_operation_time = make_metric(
+        metric_name="Mean operation time ⏱", id_number="mean-operation-time"
+    )
+
+    metrics_1 = html.Div(
+        id="metrics-1",
+        className="bg-color-1 cool-container small-padding flex-container-col",
+        children=[n_operations, n_good_operations, n_bad_operations],
+    )
+
+    metrics_2 = html.Div(
+        id="metrics-2",
+        className="bg-color-1 cool-container small-padding flex-container-col",
+        children=[n_operations_by_hour, mean_operation_time],
     )
 
     backtesting_container_2 = html.Div(
@@ -174,6 +212,9 @@ def make_backtesting_container_2():
             start_wallet,
             # End Wallet
             end_wallet,
+            # metrics
+            metrics_1,
+            metrics_2,
         ],
     )
 
@@ -232,13 +273,25 @@ def get_summary_candle_plot(symbol, start_date, end_date):
     Output("b-coin-name-start", "children"),
     Output("b-coin-name-end", "children"),
     Output("b-coin-name-input", "children"),
+    Output("a-coin-value-input", "value"),
+    Output("b-coin-value-input", "value"),
+    Output("a-coin-value-input", "step"),
+    Output("b-coin-value-input", "step"),
     Input("symbols", "value"),
 )
 def get_coins(symbol):
 
     a_coin, b_coin = get_coin_names_from_symbol(symbol)
 
-    return a_coin, a_coin, a_coin, b_coin, b_coin, b_coin
+    # compute reasonable input values for a and b coins
+    a = from_usdt(asset=a_coin, amount=INITIAL_AMOUNT_USDT)
+    b = from_usdt(asset=b_coin, amount=INITIAL_AMOUNT_USDT)
+    a_step = a / 20
+    b_step = b / 20
+    a = format_number(a, PRECISION)
+    b = format_number(b, PRECISION)
+
+    return a_coin, a_coin, a_coin, b_coin, b_coin, b_coin, a, b, a_step, b_step
 
 
 @app.callback(
@@ -266,6 +319,14 @@ def get_clicked_day(click_data):
     Output("total-value-start", "children"),
     Output("total-value-input", "children"),
     Output("total-value-end", "children"),
+    Output("dummy-strategy", "style"),
+    Output("simple-strategy", "style"),
+    Output("n-operations", "children"),
+    Output("n-good-operations", "children"),
+    Output("n-bad-operations", "children"),
+    Output("n-operations-by-hour", "children"),
+    Output("mean-operation-time", "children"),
+    Output("strategies", "n_clicks"),
     Input("start-day", "date"),
     Input("end-day", "date"),
     Input("start-time", "value"),
@@ -275,6 +336,8 @@ def get_clicked_day(click_data):
     Input("alpha", "value"),
     Input("a-coin-value-input", "value"),
     Input("b-coin-value-input", "value"),
+    Input("dummy-strategy-btn", "n_clicks_timestamp"),
+    Input("simple-strategy-btn", "n_clicks_timestamp"),
 )
 def get_analytics_candle_plot(
     start_day,
@@ -286,6 +349,8 @@ def get_analytics_candle_plot(
     alpha,
     a_coin_input,
     b_coin_input,
+    dummy_strategy_btn_timestamp,
+    simple_strategy_btn_timestamp,
 ):
 
     start_day = datetime.strptime(start_day, "%Y-%m-%d")
@@ -307,7 +372,7 @@ def get_analytics_candle_plot(
         start_datetime=pre_start_datetime,
         end_datetime=end_datetime,
         symbol=symbol,
-        interval="1m",
+        interval=CLIENT.KLINE_INTERVAL_1MINUTE,
     )
 
     df["avg_10"] = df["close"].rolling(10).mean()
@@ -315,6 +380,9 @@ def get_analytics_candle_plot(
     df.dropna(inplace=True)
     df["ds"] = df["dateTime"]
     df["y"] = df["close"]
+
+    a_coin_input = float(a_coin_input)
+    b_coin_input = float(b_coin_input)
 
     start_wallet = Wallet(
         symbol=symbol,
@@ -324,43 +392,76 @@ def get_analytics_candle_plot(
 
     start_wallet_total = start_wallet.get_value_usdt()
 
-    simple_trader = SimpleTrader(df=df, start_wallet=start_wallet, alpha=alpha, delta=delta)
+    if dummy_strategy_btn_timestamp is None:
+        dummy_strategy_btn_timestamp = 1
+    if simple_strategy_btn_timestamp is None:
+        simple_strategy_btn_timestamp = 0
+    print("dummy_strategy_btn_timestamp", dummy_strategy_btn_timestamp)
+    print("simple_strategy_btn_timestamp", simple_strategy_btn_timestamp)
+    print("dummy_strategy_btn_timestamp type", type(dummy_strategy_btn_timestamp))
+    print("simple_strategy_btn_timestamp type", type(simple_strategy_btn_timestamp))
 
-    end_wallet = simple_trader.end_wallet
+    # by default, use dummy strategy
+    strategies_btn_timestamps = {
+        "dummy": dummy_strategy_btn_timestamp,
+        "simple": simple_strategy_btn_timestamp,
+    }
+
+    strategies_btn_timestamps_sorted = {
+        k: v for k, v in sorted(strategies_btn_timestamps.items(), key=lambda item: item[1])
+    }
+
+    print("strategies_btn_timestamps_sorted: ", strategies_btn_timestamps_sorted)
+
+    selected_strategy = list(strategies_btn_timestamps_sorted.keys())[-1]
+
+    print("selected_strategy: ", selected_strategy)
+
+    dummy_strategy_style = {}
+    simple_strategy_style = {}
+    if "dummy" in selected_strategy:
+        print("Dummy Strategy selected!")
+        strategy = DummyStrategy(df=df, start_wallet=start_wallet)
+        dummy_strategy_style = {"border-color": "red"}
+    elif "simple" in selected_strategy:
+        strategy = SimpleStrategy(df=df, start_wallet=start_wallet, alpha=alpha, delta=delta)
+        simple_strategy_style = {"border-color": "red"}
+        print("Simple Strategy selected!")
+    else:
+        print("Dummy Strategy selected!")
+        strategy = DummyStrategy(df=df, start_wallet=start_wallet)
+        dummy_strategy_style = {"border-color": "red"}
+
+    end_wallet = strategy.end_wallet
     end_wallet_total = end_wallet.get_value_usdt()
 
+    n_operations = strategy.get_n_operations()
+    n_good_operations = strategy.get_n_good_operations()
+    n_bad_operations = strategy.get_n_bad_operations()
+    n_operations_by_hour = strategy.get_n_operations_by_hour()
+    mean_operation_time = strategy.get_mean_operation_time()
+
     fig = render_analytics_plot(
-        df=simple_trader.df,
-        symbol=simple_trader.start_wallet.symbol,
+        df=strategy.df,
+        symbol=strategy.start_wallet.symbol,
         avgs={"avg_10": LIGHT_GREEN, "avg_50": ORANGE},
     )
 
     return (
         fig,
-        round(end_wallet.a, 2),
-        round(end_wallet.b, 2),
-        round(a_coin_input, 2),
-        round(b_coin_input, 2),
-        round(start_wallet_total, 2),
-        round(start_wallet_total, 2),
-        round(end_wallet_total, 2),
+        format_number(end_wallet.a, PRECISION),
+        format_number(end_wallet.b, PRECISION),
+        format_number(a_coin_input, PRECISION),
+        format_number(b_coin_input, PRECISION),
+        format_number(start_wallet_total, PRECISION),
+        format_number(start_wallet_total, PRECISION),
+        format_number(end_wallet_total, PRECISION),
+        dummy_strategy_style,
+        simple_strategy_style,
+        n_operations,
+        n_good_operations,
+        n_bad_operations,
+        n_operations_by_hour,
+        mean_operation_time,
+        42,
     )
-
-
-# @app.callback(
-#     Output("container-button-timestamp", "children"),
-#     Input("btn-nclicks-1", "n_clicks"),
-#     Input("btn-nclicks-2", "n_clicks"),
-#     Input("btn-nclicks-3", "n_clicks"),
-# )
-# def display_click(btn1, btn2, btn3):
-#     changed_id = [p["prop_id"] for p in callback_context.triggered][0]
-#     if "btn-nclicks-1" in changed_id:
-#         msg = "Button 1 was most recently clicked"
-#     elif "btn-nclicks-2" in changed_id:
-#         msg = "Button 2 was most recently clicked"
-#     elif "btn-nclicks-3" in changed_id:
-#         msg = "Button 3 was most recently clicked"
-#     else:
-#         msg = "None of the buttons have been clicked yet"
-#     return html.Div(msg)

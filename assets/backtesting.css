@@ -25,12 +25,13 @@
 
 #backtesting-container-2 {
     grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 220px 1fr 500px 220px;
+    grid-template-rows: 220px 1fr 500px 220px 220px;
     grid-template-areas: 
         "options options options"
         "strategies strategies strategies"
         "figure figure figure"
-        "start-wallet end-wallet - ";
+        "start-wallet end-wallet metrics-1"
+        "metrics-2 - -";
 }
 
 #analytics-candle-plot {
@@ -49,8 +50,17 @@
     grid-area: options;
 }
 
+#metrics-1 {
+    grid-area: metrics-1;
+}
+
+#metrics-2 {
+    grid-area: metrics-2;
+}
+
 #strategies {
     grid-area: strategies;
+    gap: 50px;
 }
 
 #symbols {
@@ -121,7 +131,7 @@
 
 .strategy-container{
     border: solid 1px white;
-    min-height: 150px;
+    min-width: 300px;
     padding: 20px;
     border-radius: var(--border-radius);
 }
