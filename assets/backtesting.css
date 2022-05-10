@@ -31,7 +31,7 @@
         "strategies strategies strategies"
         "figure figure figure"
         "start-wallet end-wallet metrics-1"
-        "metrics-2 - -";
+        "metrics-2 metrics-3 metrics-4";
 }
 
 #analytics-candle-plot {
@@ -58,6 +58,14 @@
     grid-area: metrics-2;
 }
 
+#metrics-3 {
+    grid-area: metrics-3;
+}
+
+#metrics-4 {
+    grid-area: metrics-4;
+}
+
 #strategies {
     grid-area: strategies;
     gap: 50px;
@@ -73,7 +81,6 @@
 
 .time-range-grid {
     display: grid;
-    grid-template-columns: 200px 200px;
     grid-template-rows: 50px 50px;
     grid-template-areas: 
         "date1 date2"
@@ -101,7 +108,6 @@
 
 .wallet-grid {
     display: grid;
-    grid-template-columns: 100px 100px;
     grid-template-rows: 50px 50px;
     grid-template-areas: 
         "a-coin b-coin"
@@ -137,5 +143,5 @@
 }
 
 .slider {
-    min-width: 200px;
+    min-width: 300px;
 }

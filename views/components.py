@@ -3,14 +3,14 @@ from datetime import datetime, date
 from dash import html, dcc
 import dash_mantine_components as dmc
 
-from views.style import format_number
-
 
 def make_vertical_group(
-    element, title_text="", tiny_gap=False, id_title=None, class_title="", gap=None
+    element, title_text="", tiny_gap=False, id_title=None, class_title="", gap=None, class_vg=None
 ):
 
-    class_vg = "flex-container-col"
+    if class_vg is None:
+        class_vg = ""
+    class_vg = "flex-container-col" + class_vg
 
     if tiny_gap:
         class_vg = class_vg + " tiny-gap"
@@ -154,6 +154,8 @@ def make_metric(metric_name, id_number):
 
     value_p = html.P(id=id_number, className="big-numbers")
 
-    metric_component = make_vertical_group(element=value_p, title_text=metric_name, gap="5px")
+    metric_component = make_vertical_group(
+        element=value_p, title_text=metric_name, gap="5px", class_vg="ai-fs"
+    )
 
     return metric_component

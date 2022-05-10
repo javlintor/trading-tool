@@ -1,8 +1,6 @@
 from datetime import datetime, date, timedelta
 import pandas as pd
-import dash_daq as daq
-import dash_bootstrap_components as dbc
-from dash import html, dcc, Input, Output, callback_context
+from dash import html, dcc, Input, Output
 import plotly.graph_objects as go
 
 from trading_tool.client import CLIENT
@@ -25,7 +23,7 @@ from views.components import (
     make_metric,
 )
 from views.plot import render_analytics_plot
-from views.style import colors, LIGHT_GREEN, ORANGE, format_number
+from views.style import colors, LIGHT_GREEN, ORANGE, format_number, format_percentage
 
 
 def make_backtesting_container_1():
@@ -107,23 +105,56 @@ def make_backtesting_container_2():
         class_name="",
     )
 
+    big_ma_selector = make_vertical_group(
+        title_text="Big Moving Average",
+        element=dcc.Slider(
+            50,
+            500,
+            value=100,
+            step=10,
+            id="big-ma-selector",
+            className="slider",
+            marks=None,
+            tooltip={"placement": "bottom"},
+        ),
+    )
+
+    small_ma_selector = make_vertical_group(
+        title_text="Small Moving Average",
+        element=dcc.Slider(
+            0,
+            50,
+            value=20,
+            step=1,
+            id="small-ma-selector",
+            className="slider",
+            marks=None,
+            tooltip={"placement": "bottom"},
+        ),
+    )
+
+    ma_selectors = html.Div(
+        className="flex-container-col",
+        children=[big_ma_selector, small_ma_selector]
+    )
+
     analytics_options = html.Div(
         id="analytics-options",
         className="flex-container jc-sa ai-fs cool-container bg-color-1",
-        children=[time_range, input_wallet],
+        children=[time_range, input_wallet, ma_selectors],
     )
 
     start_wallet = make_wallet(
         wallet_title="💰 Start Wallet",
         id_suffix="-start",
         id_component="start-wallet",
-        class_name="bg-color-1 cool-container small-padding",
+        class_name="bg-color-1 cool-container",
     )
     end_wallet = make_wallet(
         wallet_title="💰 End Wallet",
         id_suffix="-end",
         id_component="end-wallet",
-        class_name="bg-color-1 cool-container small-padding",
+        class_name="bg-color-1 cool-container",
     )
     analytics_candle_plot = dcc.Graph(
         id="analytics-candle-plot", responsive=True, className="height-100 candle-plot"
@@ -149,11 +180,29 @@ def make_backtesting_container_2():
 
     delta_param = make_vertical_group(
         title_text="delta",
-        element=dcc.Slider(0, 0.03, value=0.015, step=0.005, id="delta", className="slider"),
+        element=dcc.Slider(
+            0,
+            0.03,
+            value=0.015,
+            step=0.001,
+            id="delta",
+            className="slider",
+            marks=None,
+            tooltip={"placement": "bottom"},
+        ),
     )
     alpha_param = make_vertical_group(
         title_text="alpha",
-        element=dcc.Slider(0, 0.03, value=0.015, step=0.005, id="alpha", className="slider"),
+        element=dcc.Slider(
+            0,
+            0.3,
+            value=0.015,
+            step=0.005,
+            id="alpha",
+            className="slider",
+            marks=None,
+            tooltip={"placement": "bottom"},
+        ),
     )
 
     simple_strategy_activation = html.Button("Activate", id="simple-strategy-btn")
@@ -185,17 +234,44 @@ def make_backtesting_container_2():
     mean_operation_time = make_metric(
         metric_name="Mean operation time ⏱", id_number="mean-operation-time"
     )
+    interval_profitability = make_metric(
+        metric_name="Profitability in selected interval", id_number="interval-profitability"
+    )
+    mean_profitabiliy = make_metric(
+        metric_name="Mean profitability", id_number="mean-profitability"
+    )
+    daily_profitabiliy = make_metric(
+        metric_name="Daily profitability", id_number="daily-profitability"
+    )
+    weekly_profitabiliy = make_metric(
+        metric_name="Weekly profitability", id_number="weekly-profitability"
+    )
+    yearly_profitabiliy = make_metric(
+        metric_name="Yearly profitability", id_number="yearly-profitability"
+    )
 
     metrics_1 = html.Div(
         id="metrics-1",
-        className="bg-color-1 cool-container small-padding flex-container-col",
+        className="bg-color-1 cool-container flex-container-col",
         children=[n_operations, n_good_operations, n_bad_operations],
     )
 
     metrics_2 = html.Div(
         id="metrics-2",
-        className="bg-color-1 cool-container small-padding flex-container-col",
+        className="bg-color-1 cool-container flex-container-col",
         children=[n_operations_by_hour, mean_operation_time],
+    )
+
+    metrics_3 = html.Div(
+        id="metrics-3",
+        className="bg-color-1 cool-container flex-container-col",
+        children=[interval_profitability, mean_profitabiliy],
+    )
+
+    metrics_4 = html.Div(
+        id="metrics-4",
+        className="bg-color-1 cool-container flex-container-col",
+        children=[daily_profitabiliy, weekly_profitabiliy, yearly_profitabiliy],
     )
 
     backtesting_container_2 = html.Div(
@@ -215,6 +291,8 @@ def make_backtesting_container_2():
             # metrics
             metrics_1,
             metrics_2,
+            metrics_3,
+            metrics_4,
         ],
     )
 
@@ -326,6 +404,12 @@ def get_clicked_day(click_data):
     Output("n-bad-operations", "children"),
     Output("n-operations-by-hour", "children"),
     Output("mean-operation-time", "children"),
+    Output("interval-profitability", "children"),
+    Output("interval-profitability", "style"),
+    Output("mean-profitability", "children"),
+    Output("daily-profitability", "children"),
+    Output("weekly-profitability", "children"),
+    Output("yearly-profitability", "children"),
     Output("strategies", "n_clicks"),
     Input("start-day", "date"),
     Input("end-day", "date"),
@@ -338,6 +422,8 @@ def get_clicked_day(click_data):
     Input("b-coin-value-input", "value"),
     Input("dummy-strategy-btn", "n_clicks_timestamp"),
     Input("simple-strategy-btn", "n_clicks_timestamp"),
+    Input("big-ma-selector", "value"),
+    Input("small-ma-selector", "value"),
 )
 def get_analytics_candle_plot(
     start_day,
@@ -351,6 +437,8 @@ def get_analytics_candle_plot(
     b_coin_input,
     dummy_strategy_btn_timestamp,
     simple_strategy_btn_timestamp,
+    big_ma_selector, 
+    small_ma_selector
 ):
 
     start_day = datetime.strptime(start_day, "%Y-%m-%d")
@@ -359,6 +447,7 @@ def get_analytics_candle_plot(
     end_time = datetime.strptime(end_time, "%Y-%m-%dT%H:%M:%S").time()
 
     start_datetime = datetime.combine(start_day, start_time)
+    # TODO: compute pre_start_datetime properly
     pre_start_datetime = start_datetime - timedelta(minutes=50)
     end_datetime = datetime.combine(end_day, end_time)
 
@@ -375,8 +464,11 @@ def get_analytics_candle_plot(
         interval=CLIENT.KLINE_INTERVAL_1MINUTE,
     )
 
-    df["avg_10"] = df["close"].rolling(10).mean()
-    df["avg_50"] = df["close"].rolling(50).mean()
+    big_ma_name = "avg_" + str(big_ma_selector)
+    small_ma_name = "avg_" + str(small_ma_selector)
+
+    df[big_ma_name] = df["close"].rolling(big_ma_selector).mean()
+    df[small_ma_name] = df["close"].rolling(small_ma_selector).mean()
     df.dropna(inplace=True)
     df["ds"] = df["dateTime"]
     df["y"] = df["close"]
@@ -390,61 +482,60 @@ def get_analytics_candle_plot(
         b=b_coin_input,
     )
 
-    start_wallet_total = start_wallet.get_value_usdt()
+    start_wallet_total = start_wallet.get_value_usdt(time=df["ds"].iloc[0])
 
     if dummy_strategy_btn_timestamp is None:
         dummy_strategy_btn_timestamp = 1
     if simple_strategy_btn_timestamp is None:
         simple_strategy_btn_timestamp = 0
-    print("dummy_strategy_btn_timestamp", dummy_strategy_btn_timestamp)
-    print("simple_strategy_btn_timestamp", simple_strategy_btn_timestamp)
-    print("dummy_strategy_btn_timestamp type", type(dummy_strategy_btn_timestamp))
-    print("simple_strategy_btn_timestamp type", type(simple_strategy_btn_timestamp))
 
     # by default, use dummy strategy
-    strategies_btn_timestamps = {
+    strategies_btn_ts = {
         "dummy": dummy_strategy_btn_timestamp,
         "simple": simple_strategy_btn_timestamp,
     }
 
-    strategies_btn_timestamps_sorted = {
-        k: v for k, v in sorted(strategies_btn_timestamps.items(), key=lambda item: item[1])
+    strategies_btn_ts_sorted = {
+        k: v for k, v in sorted(strategies_btn_ts.items(), key=lambda item: item[1])
     }
 
-    print("strategies_btn_timestamps_sorted: ", strategies_btn_timestamps_sorted)
-
-    selected_strategy = list(strategies_btn_timestamps_sorted.keys())[-1]
-
-    print("selected_strategy: ", selected_strategy)
+    selected_strategy = list(strategies_btn_ts_sorted.keys())[-1]
 
     dummy_strategy_style = {}
     simple_strategy_style = {}
     if "dummy" in selected_strategy:
-        print("Dummy Strategy selected!")
         strategy = DummyStrategy(df=df, start_wallet=start_wallet)
         dummy_strategy_style = {"border-color": "red"}
     elif "simple" in selected_strategy:
         strategy = SimpleStrategy(df=df, start_wallet=start_wallet, alpha=alpha, delta=delta)
         simple_strategy_style = {"border-color": "red"}
-        print("Simple Strategy selected!")
     else:
-        print("Dummy Strategy selected!")
         strategy = DummyStrategy(df=df, start_wallet=start_wallet)
         dummy_strategy_style = {"border-color": "red"}
 
     end_wallet = strategy.end_wallet
-    end_wallet_total = end_wallet.get_value_usdt()
+    end_wallet_total = end_wallet.get_value_usdt(time=df["ds"].iloc[-1])
 
     n_operations = strategy.get_n_operations()
     n_good_operations = strategy.get_n_good_operations()
     n_bad_operations = strategy.get_n_bad_operations()
     n_operations_by_hour = strategy.get_n_operations_by_hour()
     mean_operation_time = strategy.get_mean_operation_time()
+    profitabilities = strategy.get_profitabilities()
+    interval_profitability = profitabilities["interval"]
+    if interval_profitability > 0:
+        interval_profitability_style = {"color": "green"}
+    else:
+        interval_profitability_style = {"color": "red"}
+    mean_profitability = profitabilities["mean"]
+    daily_profitability = profitabilities["day"]
+    weekly_profitability = profitabilities["week"]
+    yearly_profitability = profitabilities["year"]
 
     fig = render_analytics_plot(
         df=strategy.df,
         symbol=strategy.start_wallet.symbol,
-        avgs={"avg_10": LIGHT_GREEN, "avg_50": ORANGE},
+        avgs={big_ma_name: LIGHT_GREEN, small_ma_name: ORANGE},
     )
 
     return (
@@ -463,5 +554,11 @@ def get_analytics_candle_plot(
         n_bad_operations,
         n_operations_by_hour,
         mean_operation_time,
+        format_percentage(interval_profitability),
+        interval_profitability_style,
+        format_percentage(mean_profitability),
+        format_percentage(daily_profitability),
+        format_percentage(weekly_profitability),
+        format_percentage(yearly_profitability),
         42,
     )

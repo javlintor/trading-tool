@@ -107,7 +107,7 @@ class Strategy(abc.ABC):
             mean_operation_time_str = f"{mean_operation_time} minutes"
             return mean_operation_time_str
 
-        return "Hay menos de dos operaciones"
+        return "-"
 
     def get_n_good_operations(self):
 
@@ -125,13 +125,19 @@ class Strategy(abc.ABC):
 
         start_wallet_value = self.start_wallet.a * self.df["y"].iloc[0] + self.start_wallet.b
         end_wallet_value = self.end_wallet.a * self.df["y"].iloc[-1] + self.end_wallet.b
-        profitability = (start_wallet_value - end_wallet_value) / start_wallet_value * 100
+        profitability = (end_wallet_value - start_wallet_value) / start_wallet_value * 100
         daily_profitability = profitability / self.periods["day"]
         weekly_profitability = profitability / self.periods["week"]
         yearly_profitability = profitability / self.periods["year"]
+        n_operations = self.get_n_operations()
+        if n_operations == 0:
+            mean_profitability = "NA"
+        else:
+            mean_profitability = profitability / self.get_n_operations()
 
         profitabilities = {
             "interval": profitability,
+            "mean": mean_profitability,
             "day": daily_profitability,
             "week": weekly_profitability,
             "year": yearly_profitability,
@@ -200,6 +206,40 @@ class BFSL(Strategy):
 
         return wallet
 
+class MovingAverage(Strategy):
+    def __init__(self, df, start_wallet, big_ma_window, small_ma_window, alpha):
+        super().__init__(df, start_wallet)
+        self.big_ma_window = big_ma_window
+        self.small_ma_window = small_ma_window
+        self.alpha = alpha
+        self.end_wallet = self.trader()
+        self.assess_operations()
+        self.profitabilities = self.get_profitabilities()
+
+    def trader(self):
+        wallet = copy.copy(self.start_wallet)
+
+        # create mv cols
+        self.df["big_ma"] = self.df["close"].rolling(self.big_ma_window).mean()
+        self.df["small_ma"] = self.df["close"].rolling(self.small_ma_window).mean()
+        self.df["diff"] = self.df["big_ma"] - self.df["small_ma"]
+
+        is_position = False
+
+        for i, _ in self.df.iterrows():
+            iter_value = self.df.loc[i, "big_ma"] > self.df.
+            if iter_value >= ref_value * (1 + self.delta):
+                self.df.at[i, "sell"] = self.alpha * wallet.a * iter_value
+                wallet.a, wallet.b = wallet.a * (1 - self.alpha), wallet.b + self.df.loc[i, "sell"]
+                ref_value = iter_value
+            if iter_value <= ref_value * (1 - self.delta):
+                self.df.at[i, "buy"] = self.alpha * wallet.b
+                wallet.a, wallet.b = wallet.a + self.df.at[i, "buy"] / iter_value, wallet.b * (
+                    1 - self.alpha
+                )
+                ref_value = iter_value
+        return wallet
+
 
 class Wallet:
     def __init__(self, symbol, a, b):
@@ -208,20 +248,20 @@ class Wallet:
         self.b = b
         self.a_name, self.b_name = get_coin_names_from_symbol(self.symbol)
 
-    def get_a_coin_usdt(self):
+    def get_a_coin_usdt(self, time=None):
 
-        value_usdt = to_usdt(asset=self.a_name, amount=self.a)
-
-        return value_usdt
-
-    def get_b_coin_usdt(self):
-
-        value_usdt = to_usdt(asset=self.b_name, amount=self.b)
+        value_usdt = to_usdt(asset=self.a_name, amount=self.a, time=time)
 
         return value_usdt
 
-    def get_value_usdt(self):
+    def get_b_coin_usdt(self, time=None):
 
-        value_usdt = self.get_a_coin_usdt() + self.get_b_coin_usdt()
+        value_usdt = to_usdt(asset=self.b_name, amount=self.b, time=time)
+
+        return value_usdt
+
+    def get_value_usdt(self, time=None):
+
+        value_usdt = self.get_a_coin_usdt(time) + self.get_b_coin_usdt(time)
 
         return value_usdt
