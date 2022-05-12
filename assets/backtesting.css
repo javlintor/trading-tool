@@ -24,8 +24,6 @@
 }
 
 #backtesting-container-2 {
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 220px 1fr 500px 220px 220px;
     grid-template-areas: 
         "options options options"
         "strategies strategies strategies"
@@ -36,18 +34,12 @@
 
 #analytics-candle-plot {
     grid-area: figure;
-}
-
-.candle_plot {
-    height: 100%;
-}
-
-#analytics-candle-plot {
-    grid-area: figure;
+    height: 800px;
 }
 
 #analytics-options {
     grid-area: options;
+    padding: 50px;
 }
 
 #metrics-1 {
@@ -137,11 +129,11 @@
 
 .strategy-container{
     border: solid 1px white;
-    min-width: 300px;
+    min-width: 200px;
     padding: 20px;
     border-radius: var(--border-radius);
 }
 
 .slider {
-    min-width: 300px;
+    min-width: 200px;
 }

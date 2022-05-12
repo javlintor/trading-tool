@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 from trading_tool.client import CLIENT
 from trading_tool.db import get_db_klines_1d, CONN, get_coin_names_from_symbol, from_usdt
 from trading_tool.binance import get_kline
-from trading_tool.strategy import SimpleStrategy, DummyStrategy, Wallet
+from trading_tool.strategy import SimpleStrategy, DummyStrategy, Wallet, MovingAverageStrategy
 from trading_tool.constants import (
     MIN_DATE_ALLOWED,
     MAX_DATE_ALLOWED,
@@ -107,6 +107,7 @@ def make_backtesting_container_2():
 
     big_ma_selector = make_vertical_group(
         title_text="Big Moving Average",
+        class_title="medium-font",
         element=dcc.Slider(
             50,
             500,
@@ -121,6 +122,7 @@ def make_backtesting_container_2():
 
     small_ma_selector = make_vertical_group(
         title_text="Small Moving Average",
+        class_title="medium-font",
         element=dcc.Slider(
             0,
             50,
@@ -134,8 +136,7 @@ def make_backtesting_container_2():
     )
 
     ma_selectors = html.Div(
-        className="flex-container-col",
-        children=[big_ma_selector, small_ma_selector]
+        className="flex-container-col", children=[big_ma_selector, small_ma_selector]
     )
 
     analytics_options = html.Div(
@@ -157,7 +158,7 @@ def make_backtesting_container_2():
         class_name="bg-color-1 cool-container",
     )
     analytics_candle_plot = dcc.Graph(
-        id="analytics-candle-plot", responsive=True, className="height-100 candle-plot"
+        id="analytics-candle-plot", responsive=True, className="candle-plot"
     )
 
     # ---- Strategies ------
@@ -166,7 +167,7 @@ def make_backtesting_container_2():
 
     dummy_strategy_label = html.Label(children="Dummy Strategy", className="big-font")
 
-    dummy_strategy_activation = html.Button("Activate", id="dummy-strategy-btn")
+    dummy_strategy_activation = html.Button("Activate", id="dummy-strategy-btn", className="hor-auto-margin")
 
     dummy_strategy_container = html.Div(
         id="dummy-strategy",
@@ -182,10 +183,10 @@ def make_backtesting_container_2():
         title_text="delta",
         element=dcc.Slider(
             0,
-            0.03,
-            value=0.015,
-            step=0.001,
-            id="delta",
+            0.02,
+            value=0.008,
+            step=0.0005,
+            id="ss_delta",
             className="slider",
             marks=None,
             tooltip={"placement": "bottom"},
@@ -196,16 +197,16 @@ def make_backtesting_container_2():
         element=dcc.Slider(
             0,
             0.3,
-            value=0.015,
+            value=0.15,
             step=0.005,
-            id="alpha",
+            id="ss_alpha",
             className="slider",
             marks=None,
             tooltip={"placement": "bottom"},
         ),
     )
 
-    simple_strategy_activation = html.Button("Activate", id="simple-strategy-btn")
+    simple_strategy_activation = html.Button("Activate", id="simple-strategy-btn", className="hor-auto-margin")
 
     simple_strategy_container = html.Div(
         id="simple-strategy",
@@ -213,10 +214,39 @@ def make_backtesting_container_2():
         children=[simple_strategy_label, alpha_param, delta_param, simple_strategy_activation],
     )
 
+    # moving average
+    ma_strategy_label = html.Label(children="Moving Average Strategy", className="big-font")
+    big_ma_param = make_vertical_group(
+        title_text="Big Moving Average", element=html.P(id="big-ma"), tiny_gap=True
+    )
+    small_ma_param = make_vertical_group(
+        title_text="Small Moving Average", element=html.P(id="small-ma"), tiny_gap=True
+    )
+    ma_alpha_param = make_vertical_group(
+        title_text="alpha",
+        element=dcc.Slider(
+            0,
+            0.3,
+            value=0.15,
+            step=0.005,
+            id="ma_alpha",
+            className="slider",
+            marks=None,
+            tooltip={"placement": "bottom"},
+        ),
+    )
+    ma_activation = html.Button("Activate", id="ma-strategy-btn", className="hor-auto-margin")
+
+    ma_strategy_container = html.Div(
+        id="ma-strategy",
+        className="flex-container-col strategy-container",
+        children=[ma_strategy_label, big_ma_param, small_ma_param, ma_alpha_param, ma_activation],
+    )
+
     strategies = html.Div(
         id="strategies",
         className="flex-container jc-fs ai-stretch cool-container bg-color-1",
-        children=[dummy_strategy_container, simple_strategy_container],
+        children=[dummy_strategy_container, simple_strategy_container, ma_strategy_container],
     )
 
     # ------ metrics ----------
@@ -399,6 +429,7 @@ def get_clicked_day(click_data):
     Output("total-value-end", "children"),
     Output("dummy-strategy", "style"),
     Output("simple-strategy", "style"),
+    Output("ma-strategy", "style"),
     Output("n-operations", "children"),
     Output("n-good-operations", "children"),
     Output("n-bad-operations", "children"),
@@ -416,12 +447,14 @@ def get_clicked_day(click_data):
     Input("start-time", "value"),
     Input("end-time", "value"),
     Input("symbols", "value"),
-    Input("delta", "value"),
-    Input("alpha", "value"),
+    Input("ss_delta", "value"),
+    Input("ss_alpha", "value"),
+    Input("ma_alpha", "value"),
     Input("a-coin-value-input", "value"),
     Input("b-coin-value-input", "value"),
     Input("dummy-strategy-btn", "n_clicks_timestamp"),
     Input("simple-strategy-btn", "n_clicks_timestamp"),
+    Input("ma-strategy-btn", "n_clicks_timestamp"),
     Input("big-ma-selector", "value"),
     Input("small-ma-selector", "value"),
 )
@@ -431,14 +464,16 @@ def get_analytics_candle_plot(
     start_time,
     end_time,
     symbol,
-    delta,
-    alpha,
+    ss_delta,
+    ss_alpha,
+    ma_alpha,
     a_coin_input,
     b_coin_input,
     dummy_strategy_btn_timestamp,
     simple_strategy_btn_timestamp,
-    big_ma_selector, 
-    small_ma_selector
+    ma_strategy_btn_timestamp,
+    big_ma_selector,
+    small_ma_selector,
 ):
 
     start_day = datetime.strptime(start_day, "%Y-%m-%d")
@@ -469,6 +504,8 @@ def get_analytics_candle_plot(
 
     df[big_ma_name] = df["close"].rolling(big_ma_selector).mean()
     df[small_ma_name] = df["close"].rolling(small_ma_selector).mean()
+    df["big_ma"] = df[big_ma_name]
+    df["small_ma"] = df[small_ma_name]
     df.dropna(inplace=True)
     df["ds"] = df["dateTime"]
     df["y"] = df["close"]
@@ -488,11 +525,14 @@ def get_analytics_candle_plot(
         dummy_strategy_btn_timestamp = 1
     if simple_strategy_btn_timestamp is None:
         simple_strategy_btn_timestamp = 0
+    if ma_strategy_btn_timestamp is None:
+        ma_strategy_btn_timestamp = 0
 
     # by default, use dummy strategy
     strategies_btn_ts = {
         "dummy": dummy_strategy_btn_timestamp,
         "simple": simple_strategy_btn_timestamp,
+        "ma": ma_strategy_btn_timestamp,
     }
 
     strategies_btn_ts_sorted = {
@@ -503,12 +543,23 @@ def get_analytics_candle_plot(
 
     dummy_strategy_style = {}
     simple_strategy_style = {}
+    ma_strategy_style = {}
     if "dummy" in selected_strategy:
         strategy = DummyStrategy(df=df, start_wallet=start_wallet)
         dummy_strategy_style = {"border-color": "red"}
     elif "simple" in selected_strategy:
-        strategy = SimpleStrategy(df=df, start_wallet=start_wallet, alpha=alpha, delta=delta)
+        strategy = SimpleStrategy(df=df, start_wallet=start_wallet, alpha=ss_alpha, delta=ss_delta)
         simple_strategy_style = {"border-color": "red"}
+    elif "ma" in selected_strategy:
+        strategy = MovingAverageStrategy(
+            df=df,
+            start_wallet=start_wallet,
+            alpha=ma_alpha,
+            big_ma_window=big_ma_selector,
+            small_ma_window=small_ma_selector,
+            compute_ma=False,
+        )
+        ma_strategy_style = {"border-color": "red"}
     else:
         strategy = DummyStrategy(df=df, start_wallet=start_wallet)
         dummy_strategy_style = {"border-color": "red"}
@@ -549,6 +600,7 @@ def get_analytics_candle_plot(
         format_number(end_wallet_total, PRECISION),
         dummy_strategy_style,
         simple_strategy_style,
+        ma_strategy_style,
         n_operations,
         n_good_operations,
         n_bad_operations,
@@ -562,3 +614,13 @@ def get_analytics_candle_plot(
         format_percentage(yearly_profitability),
         42,
     )
+
+
+@app.callback(
+    Output("big-ma", "children"),
+    Output("small-ma", "children"),
+    Input("big-ma-selector", "value"),
+    Input("small-ma-selector", "value"),
+)
+def get_ma_params(big_ma_value, small_ma_value):
+    return big_ma_value, small_ma_value
