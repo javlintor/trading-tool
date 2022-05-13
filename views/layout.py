@@ -16,7 +16,7 @@ def make_layout():
         value="overview-tab",
         className="my-tab",
         selected_className="my-tab-selected",
-        children=[make_profile_description()],
+        children=[make_profile_description(TEST_CLIENT)],
     )
 
     backtesting_tab = dcc.Tab(

@@ -5,10 +5,10 @@ from trading_tool.client import TEST_CLIENT
 from views.style import colors, table_colors, GRAY5
 
 
-def make_profile_description():
+def make_profile_description(client):
 
     # get current portfolio in usdt
-    df = get_portfolio(TEST_CLIENT)
+    df = get_portfolio(client)
 
     # create pie chart with plotly
     fig = px.pie(
