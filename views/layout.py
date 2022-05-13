@@ -1,5 +1,7 @@
 from dash import html, dcc
+
 from trading_tool.db import create_connection
+from trading_tool.client import TEST_CLIENT
 from views.header import make_header
 from views.backtesting import make_backtesting_container_1, make_backtesting_container_2
 from views.profile import make_profile_description

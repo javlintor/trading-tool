@@ -1,7 +1,6 @@
 from dash import html, dcc, dash_table
 import plotly.express as px
 from trading_tool.binance import get_portfolio
-from trading_tool.client import TEST_CLIENT
 from views.style import colors, table_colors, GRAY5
 
 
