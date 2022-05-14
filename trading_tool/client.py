@@ -16,10 +16,10 @@ try:
         test_secret_key = config.get("BINANCE", "TEST-SECRET-KEY")
         
 except FileNotFoundError:
-    actual_api_key = os.environ.get('ACTUAL-API-KEY')
-    actual_secret_key = os.environ.get('ACTUAL-SECRET-KEY')
-    test_api_key = os.environ.get('TEST-API-KEY')
-    test_secret_key = os.environ.get('TEST-SECRET-KEY')
+    actual_api_key = os.environ.get('ACTUAL_API_KEY')
+    actual_secret_key = os.environ.get('ACTUAL_SECRET_KEY')
+    test_api_key = os.environ.get('TEST_API_KEY')
+    test_secret_key = os.environ.get('TEST_SECRET_KEY')
 
 
 CLIENT = Client(actual_api_key, actual_secret_key)
