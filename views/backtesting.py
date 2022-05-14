@@ -267,7 +267,10 @@ def make_backtesting_container_2():
     interval_profitability = make_metric(
         metric_name="Profitability in selected interval", id_number="interval-profitability"
     )
-    mean_profitabiliy = make_metric(
+    market_profitability = make_metric(
+        metric_name="Market profitability", id_number="market-profitability"
+    )
+    mean_profitability = make_metric(
         metric_name="Mean profitability", id_number="mean-profitability"
     )
     daily_profitabiliy = make_metric(
@@ -295,7 +298,7 @@ def make_backtesting_container_2():
     metrics_3 = html.Div(
         id="metrics-3",
         className="bg-color-1 cool-container flex-container-col",
-        children=[interval_profitability, mean_profitabiliy],
+        children=[interval_profitability, market_profitability, mean_profitability],
     )
 
     metrics_4 = html.Div(
@@ -437,6 +440,7 @@ def get_clicked_day(click_data):
     Output("mean-operation-time", "children"),
     Output("interval-profitability", "children"),
     Output("interval-profitability", "style"),
+    Output("market-profitability", "children"),
     Output("mean-profitability", "children"),
     Output("daily-profitability", "children"),
     Output("weekly-profitability", "children"),
@@ -564,6 +568,7 @@ def get_analytics_candle_plot(
         strategy = DummyStrategy(df=df, start_wallet=start_wallet)
         dummy_strategy_style = {"border-color": "red"}
 
+    dummy_strategy = DummyStrategy(df=df, start_wallet=start_wallet)
     end_wallet = strategy.end_wallet
     end_wallet_total = end_wallet.get_value_usdt(time=df["ds"].iloc[-1])
 
@@ -578,6 +583,7 @@ def get_analytics_candle_plot(
         interval_profitability_style = {"color": "green"}
     else:
         interval_profitability_style = {"color": "red"}
+    market_profitability = dummy_strategy.get_profitabilities()["interval"]
     mean_profitability = profitabilities["mean"]
     daily_profitability = profitabilities["day"]
     weekly_profitability = profitabilities["week"]
@@ -608,6 +614,7 @@ def get_analytics_candle_plot(
         mean_operation_time,
         format_percentage(interval_profitability),
         interval_profitability_style,
+        format_percentage(market_profitability),
         format_percentage(mean_profitability),
         format_percentage(daily_profitability),
         format_percentage(weekly_profitability),
