@@ -48,4 +48,6 @@ def make_layout():
         id="layout",
     )
 
+    layout = dcc.Loading(children=layout)
+
     return layout
