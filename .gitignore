@@ -11,5 +11,4 @@ __pycache__/
 .vscode
 .pylintrc
 *.egg-info
-trading_tool/auth.py
 set_environment.py
