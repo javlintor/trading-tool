@@ -1,1 +1,1 @@
-web: gunicorn cryptotradingtool:app
+web: gunicorn cryptotradingtool:server
