@@ -256,10 +256,14 @@ class MovingAverageStrategy(Strategy):
             iter_diff = self.df["diff"].loc[i]
 
             if previous_diff > 0 and iter_diff < 0:
-                self.df.at[i, "sell"] = self.alpha * wallet.a * self.df["close"].loc[i]
-                wallet.a, wallet.b = wallet.a * (1 - self.alpha), wallet.b + self.df.loc[i, "sell"]
-            if previous_diff < 0 and iter_diff > 0:
+
                 self.df.at[i, "buy"] = self.alpha * wallet.b
+                wallet.a, wallet.b = wallet.a + self.df.at[i, "buy"] / self.df["close"].loc[i], wallet.b * (
+                    1 - self.alpha
+                )
+
+            if previous_diff < 0 and iter_diff > 0:
+                self.df.at[i, "sell"] = self.alpha * wallet.a * self.df["close"].loc[i]
                 wallet.a, wallet.b = wallet.a * (1 - self.alpha), wallet.b + self.df.loc[i, "sell"]
 
             previous_diff = iter_diff

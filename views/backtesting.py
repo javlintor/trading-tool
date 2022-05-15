@@ -1,4 +1,6 @@
 from datetime import datetime, date, timedelta
+import copy
+
 import pandas as pd
 from dash import html, dcc, Input, Output
 import plotly.graph_objects as go
@@ -568,7 +570,7 @@ def get_analytics_candle_plot(
         strategy = DummyStrategy(df=df, start_wallet=start_wallet)
         dummy_strategy_style = {"border-color": "red"}
 
-    dummy_strategy = DummyStrategy(df=df, start_wallet=start_wallet)
+    dummy_strategy = DummyStrategy(df=copy.copy(df), start_wallet=copy.copy(start_wallet))
     end_wallet = strategy.end_wallet
     end_wallet_total = end_wallet.get_value_usdt(time=df["ds"].iloc[-1])
 
