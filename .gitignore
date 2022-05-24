@@ -1,6 +1,7 @@
 my_env/
 pre/
 dev/
+trading_tool.db
 *.cfg
 *.csv
 docs/
