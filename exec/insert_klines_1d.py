@@ -1,4 +1,7 @@
-from datetime import datetime, date
+import sys
+sys.path.append('.')
+
+from datetime import datetime, date, timedelta
 
 import pandas as pd
 
@@ -16,7 +19,7 @@ def main():
 
     # loop over symbols and call get_kline
 
-    start_datetime = datetime(2018, 1, 1)
+    start_datetime = date.today() - timedelta(days=15)
     end_datetime = date.today()
 
     df_klines = []
