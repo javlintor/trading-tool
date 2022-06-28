@@ -1,5 +1,3 @@
-my_env/
-pre/
 dev/
 trading_tool.db
 *.cfg
@@ -13,4 +11,3 @@ __pycache__/
 .vscode
 .pylintrc
 *.egg-info
-set_environment.py
