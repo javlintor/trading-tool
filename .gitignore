@@ -1,5 +1,3 @@
-my_env/
-pre/
 dev/
 *.cfg
 *.csv
@@ -12,4 +10,3 @@ __pycache__/
 .vscode
 .pylintrc
 *.egg-info
-set_environment.py
