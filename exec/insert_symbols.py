@@ -28,8 +28,6 @@ def main():
     df_symbols.drop(["id", "asset"], inplace=True, axis=1)
     df_symbols = df_symbols[["symbol", "id_baseAsset", "id_quoteAsset"]]
 
-    print(df_symbols.head())
-
     # save dataframe to db
     ok = df_symbols.to_sql(name="symbols", con=conn, if_exists="append", index=False)
     if not ok:
