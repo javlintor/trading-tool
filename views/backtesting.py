@@ -342,7 +342,18 @@ def make_backtesting_container_2():
 )
 def get_summary_candle_plot(symbol, start_date, end_date):
 
-    df = get_db_klines_1d(CONN, symbol, start_date, end_date)
+    # df = get_db_klines_1d(CONN, symbol, start_date, end_date)
+
+    start_date = datetime.strptime(start_date, "%Y-%m-%d")
+    end_date = datetime.strptime(end_date, "%Y-%m-%d")
+
+    df = get_kline(
+        client=CLIENT,
+        start_datetime=start_date,
+        end_datetime=end_date,
+        symbol=symbol,
+        interval=CLIENT.KLINE_INTERVAL_1DAY,
+    )
 
     fig = go.Figure(
         data=[
