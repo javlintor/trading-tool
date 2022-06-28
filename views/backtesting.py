@@ -345,6 +345,7 @@ def get_summary_candle_plot(symbol, start_date, end_date):
     # df = get_db_klines_1d(CONN, symbol, start_date, end_date)
 
     start_date = datetime.strptime(start_date, "%Y-%m-%d")
+    
     end_date = datetime.strptime(end_date, "%Y-%m-%d")
 
     df = get_kline(
