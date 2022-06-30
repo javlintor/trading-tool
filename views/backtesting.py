@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 
 from trading_tool.client import CLIENT
 from trading_tool.db import get_db_klines_1d, CONN, get_coin_names_from_symbol, from_usdt
-from trading_tool.binance import get_kline
+from trading_tool.load import get_kline
 from trading_tool.strategy import SimpleStrategy, DummyStrategy, Wallet, MovingAverageStrategy
 from trading_tool.constants import (
     MIN_DATE_ALLOWED,
@@ -342,10 +342,7 @@ def make_backtesting_container_2():
 )
 def get_summary_candle_plot(symbol, start_date, end_date):
 
-    # df = get_db_klines_1d(CONN, symbol, start_date, end_date)
-
-    start_date = datetime.strptime(start_date, "%Y-%m-%d")
-    
+    start_date = datetime.strptime(start_date, "%Y-%m-%d")    
     end_date = datetime.strptime(end_date, "%Y-%m-%d")
 
     df = get_kline(

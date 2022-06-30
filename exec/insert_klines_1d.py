@@ -1,12 +1,9 @@
-import sys
-sys.path.append('.')
-
 from datetime import datetime, date, timedelta
 
 import pandas as pd
 
 from trading_tool.db import create_connection
-from trading_tool.binance import get_kline
+from trading_tool.load import get_kline
 from trading_tool.client import CLIENT
 
 

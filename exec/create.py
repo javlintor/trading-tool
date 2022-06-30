@@ -1,7 +1,3 @@
-import sys
-
-sys.path.append('.')
-
 from trading_tool.db import create_connection, create_table
 
 

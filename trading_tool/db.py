@@ -4,7 +4,7 @@ import sqlite3
 from sqlite3 import Error
 import pandas as pd
 
-from trading_tool.binance import get_prices, get_kline
+from trading_tool.load import get_prices, get_kline
 from trading_tool.client import CLIENT
 
 
