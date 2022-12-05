@@ -1,10 +1,7 @@
-import sys
-sys.path.append('.')
-
 import pandas as pd
 
 from trading_tool.db import create_connection, select_query
-from trading_tool.binance import get_symbols
+from trading_tool.load import get_symbols
 from trading_tool.client import CLIENT
 
 
@@ -27,8 +24,6 @@ def main():
     df_symbols["id_quoteAsset"] = df_symbols["id"]
     df_symbols.drop(["id", "asset"], inplace=True, axis=1)
     df_symbols = df_symbols[["symbol", "id_baseAsset", "id_quoteAsset"]]
-
-    print(df_symbols.head())
 
     # save dataframe to db
     ok = df_symbols.to_sql(name="symbols", con=conn, if_exists="append", index=False)
