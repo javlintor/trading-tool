@@ -1,11 +1,12 @@
 from trading_tool.db import create_connection, select_query, insert_asset
 from trading_tool.load import get_assets
+import trading_tool.configloader as cfg
 from trading_tool.client import CLIENT
 
 
 def main():
     # Create a database connection
-    conn = create_connection("trading_tool.db")
+    conn = create_connection(cfg.DB_FILENAME)
 
     # Get the assets available in the Binance API
     bi_assets = get_assets(CLIENT)

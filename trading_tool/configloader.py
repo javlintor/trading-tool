@@ -7,6 +7,10 @@ _ENV_LOCAL = 'LOCAL'
 _ENV_DEV = 'DEV'
 _ENV_PROD = 'PROD'
 
+# DB - SQLite
+DB_FILENAME = 'trading_tool.db'
+DB_FILE_EXISTS = os.path.exists(DB_FILENAME)
+
 # Try to read the "secret.cfg" file
 try: 
     # Open the file in read-only mode

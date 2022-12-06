@@ -4,13 +4,25 @@ import pandas as pd
 
 from trading_tool.db import create_connection
 from trading_tool.load import get_kline
+import trading_tool.configloader as cfg
 from trading_tool.client import CLIENT
 
 # Import the necessary modules
 
 def main():
     # Create a database connection
-    conn = create_connection("trading_tool.db")
+    conn = create_connection(cfg.DB_FILENAME)
+
+    #### JMGA
+    # TODO: Review this logic to avoid duplicates if executed multiple times
+    # in the same day
+    updated = pd.read_sql("""SELECT MAX(DATE(dateTime)) IS NOT NULL 
+                                    AND MAX(DATE(dateTime)) == DATE('now') 
+                             FROM klines_1d""",conn).all().all()
+    if updated:
+        print("Database is up to date")
+        return
+    ####
 
     # Read the symbols table from the database
     symbols = pd.read_sql("SELECT * FROM symbols", conn)
