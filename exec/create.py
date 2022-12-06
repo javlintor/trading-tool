@@ -1,5 +1,5 @@
 from trading_tool.db import create_connection, create_table
-
+import trading_tool.configloader as cfg
 
 def main():
 
@@ -46,7 +46,7 @@ def main():
     """
 
     # create a database connection
-    conn = create_connection("trading_tool.db")
+    conn = create_connection(cfg.DB_FILENAME)
 
     # # create tables
     if conn is not None:
