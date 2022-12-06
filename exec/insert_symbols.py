@@ -2,13 +2,14 @@ import pandas as pd
 
 from trading_tool.db import create_connection, select_query
 from trading_tool.load import get_symbols
+import trading_tool.configloader as cfg
 from trading_tool.client import CLIENT
 
 # Import the necessary modules
 
 def main():
     # Establish a database connection
-    conn = create_connection("trading_tool.db")
+    conn = create_connection(cfg.DB_FILENAME)
 
     # Retrieve the list of symbols from the client
     bi_symbols = get_symbols(CLIENT)
